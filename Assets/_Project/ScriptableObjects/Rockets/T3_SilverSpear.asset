@@ -25,6 +25,6 @@ MonoBehaviour:
   - type: 3
     tier: 3
     count: 1
-  flightPrefab: {fileID: 0}
+  flightPrefab: {fileID: 6673260484102911245, guid: d5dcbe68ae16a9142b11fa981e8d3d2f, type: 3}
   icon: {fileID: 0}
   impactScale: 1
