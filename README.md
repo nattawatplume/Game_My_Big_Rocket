@@ -17,6 +17,7 @@
 - **IRR/Generate Art + Build Main Scene**: สร้างโมเดลทั้งหมดด้วยโค้ดแล้วประกอบฉากใหม่
 - **IRR/Build Main Scene**: ประกอบฉากใหม่อย่างเดียว
 - **IRR/Capture Main Camera**: บันทึกภาพหน้าจอไว้ที่ `Logs/capture.png`
+- **IRR/Build Windows Game**: build เกมเป็นไฟล์ `.exe` ไว้ที่ `Builds/Windows/IslandRocketRumble.exe` (โฟลเดอร์ Builds ไม่ถูกเก็บใน git)
 
 ## เอกสาร
 - [Docs/GDD.md](Docs/GDD.md): เอกสารออกแบบเกม
