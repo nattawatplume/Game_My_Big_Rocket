@@ -159,7 +159,8 @@ namespace IslandRocketRumble
         void BuildRage()
         {
             Image fill;
-            rageMeter = UIFactory.Panel(rect, "RageMeter", UIFactory.TopCenter, new Vector2(0f, -(26f + 92f + 14f + 34f)),
+            // Bottom of the screen: at the top it covered the robot once rage made it grow.
+            rageMeter = UIFactory.Panel(rect, "RageMeter", UIFactory.BottomCenter, new Vector2(0f, 24f + 34f),
                 new Vector2(520f, 68f), Palette.Cream, out fill, 30f, 4f, true);
             var title = UIFactory.Txt(rageMeter, "Title", "ฝันร้าย cpe40 · ความโกรธ", 21, Palette.Ink, TextAnchor.MiddleLeft, UIFactory.MidLeft,
                 new Vector2(22f + 160f, 12f), new Vector2(320f, 30f), true);

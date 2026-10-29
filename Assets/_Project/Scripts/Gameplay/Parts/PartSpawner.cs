@@ -26,6 +26,8 @@ namespace IslandRocketRumble
 
         [Header("Prefabs (index = PartType: Gear, Nut, Fuel, Chip, Gem). Primitive fallback if empty.")]
         public GameObject[] partPrefabs = new GameObject[5];
+        [Tooltip("Art parts are ~0.45m; enlarge so they read at the game camera's distance.")]
+        public float prefabPartScale = 1.7f;
         [Tooltip("FX/WarningRing prefab (flat ring, radius 1).")]
         public GameObject warningRingPrefab;
         [Tooltip("FX/LightBeam prefab (tall translucent cylinder, height 1).")]
@@ -194,6 +196,7 @@ namespace IslandRocketRumble
                 vis.name = "Visual";
                 vis.transform.localPosition = Vector3.zero;
                 vis.transform.localRotation = Quaternion.identity;
+                vis.transform.localScale *= prefabPartScale;
             }
             else
             {

@@ -14,11 +14,22 @@ namespace IslandRocketRumble
         {
             if (recipe == null) return null;
 
+            static float FlightScale(PartTier tier) => tier switch
+            {
+                // Characters stand ~1.7m tall; T5 is meant to look absurdly oversized.
+                PartTier.Scrap => 1.6f,
+                PartTier.Copper => 1.7f,
+                PartTier.Silver => 1.9f,
+                PartTier.Gold => 2.3f,
+                _ => 3.6f
+            };
+
             GameObject go;
             if (recipe.flightPrefab != null)
             {
                 go = Object.Instantiate(recipe.flightPrefab, launchPoint, Quaternion.identity);
                 go.name = "Rocket_" + recipe.displayName;
+                go.transform.localScale *= FlightScale(recipe.tier);
             }
             else
             {

@@ -112,13 +112,14 @@ namespace IslandRocketRumble.EditorTools
             var cam = new GameObject("Main Camera").AddComponent<Camera>();
             cam.tag = "MainCamera";
             cam.orthographic = true;
-            cam.orthographicSize = 7.6f;
+            cam.orthographicSize = 8.2f;
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = Palette.Sea;
             cam.nearClipPlane = 0.1f;
             cam.farClipPlane = 200f;
             var rot = Quaternion.Euler(38f, 0f, 0f);
-            var focus = new Vector3(0f, 0f, 0.6f);
+            // Focus sits behind the player islands so the robot (which grows when angry) clears the HUD.
+            var focus = new Vector3(0f, 0.6f, 1.8f);
             cam.transform.SetPositionAndRotation(focus - rot * Vector3.forward * 40f, rot);
             cam.gameObject.AddComponent<AudioListener>();
         }
