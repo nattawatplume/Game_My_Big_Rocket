@@ -169,6 +169,8 @@ namespace IslandRocketRumble.EditorTools
             controller.id = id;
             controller.islandCenter = island.transform;
             controller.spawnPoint = spawnPoint;
+            var look = go.AddComponent<CharacterLook>();
+            look.id = id;
 
             var zone = island.GetComponentInChildren<CraftZone>();
             if (zone != null) zone.player = controller;

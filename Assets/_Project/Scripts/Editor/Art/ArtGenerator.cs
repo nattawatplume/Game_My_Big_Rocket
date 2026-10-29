@@ -34,6 +34,7 @@ namespace IslandRocketRumble.EditorTools
 
             BuildProps();       // first: islands nest these prefabs
             BuildCharacters();
+            BuildCosmetics();
             BuildRobot();
             BuildRockets();
             BuildParts();

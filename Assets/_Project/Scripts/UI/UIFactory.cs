@@ -89,7 +89,7 @@ namespace IslandRocketRumble
             Vector2 anchor, Vector2 pos, Vector2 size, bool bold = false)
         {
             var rt = Rect(parent, name, anchor, pos, size);
-            var t = rt.gameObject.AddComponent<UText>();
+            var t = rt.gameObject.AddComponent<ThaiText>();
             t.font = UIFonts.Main;
             t.fontSize = fontSize;
             t.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;

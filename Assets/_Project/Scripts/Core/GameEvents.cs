@@ -28,6 +28,10 @@ namespace IslandRocketRumble
         /// <summary>(winner, reason)</summary>
         public static event Action<PlayerId, MatchEndReason> MatchEnded;
         public static event Action<PlayerId, bool> CraftMenuToggled;
+        /// <summary>A rocket piece on the owner's workshop pad flipped from blueprint to built (the part type that built it).</summary>
+        public static event Action<PlayerId, PartType> RocketPieceBuilt;
+        /// <summary>The rocket previewed on the owner's workshop pad just became fully buildable.</summary>
+        public static event Action<PlayerId, RocketRecipe> RocketReady;
 
         // Flow requests: UI raises these, GameManager answers by changing phase.
         public static event Action RequestHowToPlay;
@@ -52,6 +56,8 @@ namespace IslandRocketRumble
         public static void RaiseGemIncoming(UnityEngine.Vector3 point) => GemIncoming?.Invoke(point);
         public static void RaiseMatchEnded(PlayerId winner, MatchEndReason reason) => MatchEnded?.Invoke(winner, reason);
         public static void RaiseCraftMenuToggled(PlayerId p, bool open) => CraftMenuToggled?.Invoke(p, open);
+        public static void RaiseRocketPieceBuilt(PlayerId p, PartType type) => RocketPieceBuilt?.Invoke(p, type);
+        public static void RaiseRocketReady(PlayerId p, RocketRecipe r) => RocketReady?.Invoke(p, r);
 
         public static void Reset()
         {
@@ -59,6 +65,7 @@ namespace IslandRocketRumble
             RocketLaunched = null; IslandDamaged = null; PlayerStunned = null; RobotRageChanged = null;
             RobotHit = null; GemIncoming = null; MatchEnded = null; CraftMenuToggled = null;
             RequestHowToPlay = null; RequestStartMatch = null; RequestRematch = null; RequestTitle = null;
+            RocketPieceBuilt = null; RocketReady = null;
         }
     }
 }

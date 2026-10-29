@@ -75,6 +75,53 @@ namespace IslandRocketRumble
             return b;
         });
 
+        /// <summary>Workshop piece snaps into place: quick ratchet clicks rising into a two-note metal "clink-clink".</summary>
+        public static AudioClip BuildClink => SfxSynth.Get("build_clink", () =>
+        {
+            var b = SfxSynth.Buffer(0.42f);
+            // ratchet: three tiny clicks climbing in pitch
+            for (int i = 0; i < 3; i++)
+            {
+                float t = i * 0.028f;
+                SfxSynth.Noise(b, t, 0.018f, 0.35f, Adsr.Pluck(0.006f), 6000f, 4000f, 1800f);
+                SfxSynth.DecaySine(b, t, 1500f + 260f * i, 0.18f, 0.008f);
+            }
+            // two rising clinks (inharmonic partials = little metal plate)
+            float[] notes = { 88, 95 }; // E6, B6
+            float[] ratios = { 1f, 2.76f, 5.4f };
+            for (int n = 0; n < notes.Length; n++)
+            {
+                float t = 0.09f + n * 0.075f;
+                float f = M(notes[n]);
+                for (int k = 0; k < ratios.Length; k++)
+                    SfxSynth.DecaySine(b, t, f * ratios[k], (n == 1 ? 0.45f : 0.35f) / (1f + k * 1.2f), (n == 1 ? 0.09f : 0.05f) / (1f + k * 0.6f));
+                SfxSynth.Tone(b, t, 0.04f, f, f, SynthWave.Square, 0.1f, Adsr.Pluck(0.025f), duty: 0.25f);
+            }
+            return b;
+        });
+
+        /// <summary>Workshop rocket fully built: sparkly rising arpeggio with a glittery tail.</summary>
+        public static AudioClip ReadyChime => SfxSynth.Get("ready_chime", () =>
+        {
+            var b = SfxSynth.Buffer(1.0f);
+            float[] notes = { 84, 88, 91, 96 }; // C6 E6 G6 C7
+            for (int i = 0; i < notes.Length; i++)
+            {
+                float t = i * 0.07f;
+                bool last = i == notes.Length - 1;
+                SfxSynth.Bell(b, t, M(notes[i]), last ? 0.4f : 0.3f, last ? 0.5f : 0.2f);
+                SfxSynth.Tone(b, t, last ? 0.3f : 0.06f, M(notes[i]), M(notes[i]), SynthWave.Triangle, 0.12f,
+                    new Adsr(0.003f, 0.05f, 0.5f, last ? 0.2f : 0.03f), vibDepth: last ? 0.01f : 0f, vibRate: 7f);
+            }
+            var r = new System.Random(21);
+            for (int i = 0; i < 8; i++)
+            {
+                float t = 0.25f + i * 0.055f + (float)r.NextDouble() * 0.02f;
+                SfxSynth.DecaySine(b, t, 3000f + (float)r.NextDouble() * 2600f, 0.1f * (1f - i / 10f), 0.045f);
+            }
+            return b;
+        });
+
         // ------------------------------------------------------------ rockets / impacts
 
         /// <summary>Whoosh: noise sweep + rising tone. Small rockets are short and high, T5 is long with rumble.</summary>
@@ -355,6 +402,7 @@ namespace IslandRocketRumble
             AudioClip c;
             c = UiMove; c = UiTarget; c = MenuOpen; c = MenuClose; yield return null;
             c = CraftSuccess; c = Denied; yield return null;
+            c = BuildClink; c = ReadyChime; yield return null;
             for (int t = 1; t <= 5; t++) { c = Launch(t); yield return null; }
             for (int s = 0; s <= 3; s++) { c = Explosion(s); yield return null; }
             c = Wah(0); c = Wah(1); yield return null;

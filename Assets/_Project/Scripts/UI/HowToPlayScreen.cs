@@ -142,22 +142,22 @@ namespace IslandRocketRumble
             popTargets.Add(row);
 
             // Rocket tier strip
-            var strip = UIFactory.Panel(card, "TierStrip", UIFactory.Center, new Vector2(300f, -230f), new Vector2(980f, 190f),
+            var strip = UIFactory.Panel(card, "TierStrip", UIFactory.Center, new Vector2(300f, -226f), new Vector2(980f, 216f),
                 Color.white, 26f, 4f, false);
             for (int i = 0; i < 5; i++)
             {
                 var tier = (PartTier)(i + 1);
                 float x = -392f + i * 196f;
                 var icon = UIFactory.Icon(strip, "Rocket" + (i + 1), UISprites.Rocket(i + 1), Palette.Tier(tier), UIFactory.Center,
-                    new Vector2(x, 34f), 60f + i * 9f, 3f);
+                    new Vector2(x, 42f), 60f + i * 9f, 3f);
                 icon.name = "Rocket" + (i + 1);
                 var tl = UIFactory.Txt(strip, "T" + (i + 1), "T" + (i + 1) + " " + UIText.TierThai(tier), 22, UIText.Darker(Palette.Tier(tier), 0.7f),
-                    TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(x, -38f), new Vector2(190f, 28f), true);
+                    TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(x, -32f), new Vector2(190f, 30f), true);
                 tl.name = "Tier" + (i + 1);
                 tierNames[i] = UIFactory.Txt(strip, "Name" + (i + 1), UIText.DefaultRocketNames[i], 19, Palette.Ink, TextAnchor.MiddleCenter,
-                    UIFactory.Center, new Vector2(x, -62f), new Vector2(190f, 26f));
+                    UIFactory.Center, new Vector2(x, -58f), new Vector2(190f, 26f));
                 tierDmg[i] = UIFactory.Txt(strip, "Dmg" + (i + 1), "DMG " + UIText.DefaultRocketDamage[i], 19, Palette.Danger,
-                    TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(x, -84f), new Vector2(190f, 26f), true);
+                    TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(x, -82f), new Vector2(190f, 26f), true);
                 if (i < 4)
                     UIFactory.Txt(strip, "Arrow", "›", 40, UIFactory.WithAlpha(Palette.Ink, 0.4f), TextAnchor.MiddleCenter, UIFactory.Center,
                         new Vector2(x + 98f, 30f), new Vector2(30f, 50f), true);

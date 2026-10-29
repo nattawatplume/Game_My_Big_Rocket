@@ -5,7 +5,7 @@ using UText = UnityEngine.UI.Text;
 
 namespace IslandRocketRumble
 {
-    /// <summary>Title: wobbling two-line logo, START / HOW TO PLAY, corner key labels, drifting paper rockets.</summary>
+    /// <summary>Title: wobbling two-line logo, START / CUSTOMIZE / HOW TO PLAY, corner key labels, drifting paper rockets.</summary>
     public class TitleScreen : UIScreen
     {
         class Drifter
@@ -27,6 +27,7 @@ namespace IslandRocketRumble
         UIMenuNav nav;
         RectTransform p1Label, p2Label;
         float lastConfirm = -10f;
+        int resumeIndex;
 
         protected override void Build()
         {
@@ -72,13 +73,14 @@ namespace IslandRocketRumble
             // Buttons.
             buttons = new[]
             {
-                new UIPillButton(rect, "START GAME", Palette.HpP1, Color.white, UIFactory.Center, new Vector2(0f, -110f), new Vector2(480f, 104f)),
-                new UIPillButton(rect, "HOW TO PLAY", Palette.Cream, Palette.Ink, UIFactory.Center, new Vector2(0f, -250f), new Vector2(480f, 104f)),
+                new UIPillButton(rect, "START GAME", Palette.HpP1, Color.white, UIFactory.Center, new Vector2(0f, -95f), new Vector2(480f, 92f)),
+                new UIPillButton(rect, "แต่งตัว · CUSTOMIZE", Palette.MomoPink, Color.white, UIFactory.Center, new Vector2(0f, -205f), new Vector2(480f, 92f)),
+                new UIPillButton(rect, "HOW TO PLAY", Palette.Cream, Palette.Ink, UIFactory.Center, new Vector2(0f, -315f), new Vector2(480f, 92f)),
             };
             nav = new UIMenuNav(buttons.Length);
 
             var hint = UIFactory.Txt(rect, "NavHint", "W/S หรือ ↑/↓ เลือก  ·  SPACE / ENTER ตกลง", 26, UIFactory.WithAlpha(Palette.Ink, 0.75f),
-                TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(0f, -350f), new Vector2(900f, 40f));
+                TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(0f, -402f), new Vector2(900f, 40f));
             hint.name = "NavHint";
 
             // Corner key labels.
@@ -147,13 +149,15 @@ namespace IslandRocketRumble
 
         protected override void OnShow()
         {
-            nav.Index = 0;
+            nav.Index = resumeIndex;
+            resumeIndex = 0;
             RefreshSelection();
             for (int i = 0; i < letters.Count; i++)
                 UITween.PopIn(letters[i], 0.45f, 0.05f + i * 0.04f);
             UITween.PopIn(tagline, 0.4f, 0.5f);
             UITween.PopIn(buttons[0].Root, 0.4f, 0.6f);
-            UITween.PopIn(buttons[1].Root, 0.4f, 0.7f);
+            UITween.PopIn(buttons[1].Root, 0.4f, 0.65f);
+            UITween.PopIn(buttons[2].Root, 0.4f, 0.7f);
             UITween.PopIn(p1Label, 0.4f, 0.8f);
             UITween.PopIn(p2Label, 0.4f, 0.85f);
         }
@@ -210,6 +214,11 @@ namespace IslandRocketRumble
                 lastConfirm = Time.unscaledTime;
                 UITween.Punch(buttons[confirmed].Root, 0.25f, 0.35f);
                 if (confirmed == 0) GameEvents.RaiseRequestStartMatch();
+                else if (confirmed == 1)
+                {
+                    resumeIndex = 1;
+                    root.OpenCustomize();
+                }
                 else GameEvents.RaiseRequestHowToPlay();
             }
         }

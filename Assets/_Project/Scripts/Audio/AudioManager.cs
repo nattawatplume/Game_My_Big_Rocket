@@ -152,6 +152,8 @@ namespace IslandRocketRumble
             GameEvents.GemIncoming += OnGemIncoming;
             GameEvents.MatchEnded += OnMatchEnded;
             GameEvents.CraftMenuToggled += OnCraftMenuToggled;
+            GameEvents.RocketPieceBuilt += OnRocketPieceBuilt;
+            GameEvents.RocketReady += OnRocketReady;
         }
 
         void DetachGameEvents()
@@ -168,6 +170,8 @@ namespace IslandRocketRumble
             GameEvents.GemIncoming -= OnGemIncoming;
             GameEvents.MatchEnded -= OnMatchEnded;
             GameEvents.CraftMenuToggled -= OnCraftMenuToggled;
+            GameEvents.RocketPieceBuilt -= OnRocketPieceBuilt;
+            GameEvents.RocketReady -= OnRocketReady;
         }
 
         void BindMenus(MatchContext ctx)
@@ -495,6 +499,16 @@ namespace IslandRocketRumble
         void OnGemIncoming(Vector3 point)
         {
             Play(GameSfx.GemWarning, 0.6f, Mathf.Clamp(point.x / 10f, -0.6f, 0.6f), 0.02f, minInterval: 0.12f);
+        }
+
+        void OnRocketPieceBuilt(PlayerId p, PartType type)
+        {
+            Play(GameSfx.BuildClink, 0.6f, Pan(p), delay: 0.08f, minInterval: 0.05f);
+        }
+
+        void OnRocketReady(PlayerId p, RocketRecipe recipe)
+        {
+            Play(GameSfx.ReadyChime, 0.7f, Pan(p), 0.01f, delay: 0.3f, minInterval: 0.2f);
         }
 
         // ---------------------------------------------------------------- handlers: craft menu

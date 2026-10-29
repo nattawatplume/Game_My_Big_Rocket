@@ -20,6 +20,7 @@ namespace IslandRocketRumble
 
         TitleScreen title;
         HowToPlayScreen howTo;
+        CustomizeScreen customize;
         CountdownScreen countdown;
         HudScreen hud;
         ResultScreen result;
@@ -109,6 +110,7 @@ namespace IslandRocketRumble
             result = CreateScreen<ResultScreen>("Result");
             title = CreateScreen<TitleScreen>("Title");
             howTo = CreateScreen<HowToPlayScreen>("HowToPlay");
+            customize = CreateScreen<CustomizeScreen>("Customize");
 
             Subscribe();
         }
@@ -219,7 +221,8 @@ namespace IslandRocketRumble
                               (p == GamePhase.Playing && (!hadPhase || (prev != GamePhase.Countdown && prev != GamePhase.SuddenDeath && prev != GamePhase.Playing)));
             if (matchStart) ResetMatchData();
 
-            if (p == GamePhase.Title) title.Show(); else title.Hide();
+            if (p != GamePhase.Title) customize.Hide();
+            if (p == GamePhase.Title && !customize.IsShown) title.Show(); else title.Hide();
             if (p == GamePhase.HowToPlay) howTo.Show(); else howTo.Hide();
 
             bool hudOn = p == GamePhase.Countdown || p == GamePhase.Playing || p == GamePhase.SuddenDeath || p == GamePhase.Result;
@@ -239,6 +242,21 @@ namespace IslandRocketRumble
             if (p == GamePhase.Result) result.Show(); else result.Hide();
 
             feedback.OnPhase(p);
+        }
+
+        /// <summary>Title → dress-up screen (the game phase stays Title).</summary>
+        public void OpenCustomize()
+        {
+            if (phase != GamePhase.Title || customize.IsShown) return;
+            title.Hide();
+            customize.Show();
+        }
+
+        /// <summary>Dress-up screen → back to the title.</summary>
+        public void CloseCustomize()
+        {
+            customize.Hide();
+            if (phase == GamePhase.Title) title.Show();
         }
 
         void ResetMatchData()

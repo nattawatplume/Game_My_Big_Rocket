@@ -22,6 +22,21 @@ namespace IslandRocketRumble
 
         Vector3 Center => ringCenter != null ? ringCenter.position : transform.position;
 
+        /// <summary>Launch pad offset toward the ring's back edge (island +Z, away from the camera) so the player stays in front.</summary>
+        public const float PadBackOffset = 0.9f;
+
+        /// <summary>World point where rockets launch and the RocketWorkshop preview stands.</summary>
+        public Vector3 LaunchPad
+        {
+            get
+            {
+                Transform island = transform.parent != null ? transform.parent : transform;
+                Vector3 fwd = Vector3.ProjectOnPlane(island.forward, Vector3.up);
+                if (fwd.sqrMagnitude < 0.0001f) fwd = Vector3.forward;
+                return Center + fwd.normalized * PadBackOffset;
+            }
+        }
+
         /// <summary>True when the player closed the menu with ✕ and has not left the ring yet.</summary>
         public bool Suppressed => suppressed;
 
@@ -111,7 +126,7 @@ namespace IslandRocketRumble
             // only used when there is no target at all: land near the opponent (or straight across the sea)
             Transform opp = ctx.Player(owner.Opponent());
             Vector3 fallback = opp != null ? opp.position : Center + new Vector3(owner == PlayerId.P1 ? 14f : -14f, 0f, 0f);
-            RocketLauncher.Launch(owner, recipe, kind, target, Center, fallback);
+            RocketLauncher.Launch(owner, recipe, kind, target, LaunchPad, fallback);
         }
 
         static bool IsAlive(IRocketTarget t)
