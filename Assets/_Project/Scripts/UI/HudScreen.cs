@@ -346,7 +346,8 @@ namespace IslandRocketRumble
                 string t = (sec / 60).ToString("00") + ":" + (sec % 60).ToString("00");
                 timeStr = remaining <= 10.5f && phase == GamePhase.Playing ? UIText.Colored(t, Palette.Danger) : t;
             }
-            timeText.text = timeStr + " · " + tierStr;
+            // "SUDDEN DEATH · TIER 5 CRYSTAL" overflowed the pill, so sudden death shows alone.
+            timeText.text = phase == GamePhase.SuddenDeath ? timeStr + "!" : timeStr + " · " + tierStr;
             tierThaiText.text = "เกรด: " + UIText.TierThai(tier);
 
             if (secondChanged && phase == GamePhase.Playing && remaining <= 10.5f && remaining > 0f && IsShown)

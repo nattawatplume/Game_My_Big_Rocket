@@ -191,15 +191,30 @@ namespace IslandRocketRumble
             var ctx = Ctx;
             if (ctx == null || !ctx.IsPlaying) return;
 
+            // Deferred to LateUpdate so every other IslandDamaged listener (HUD, result HP) sees the final hit first.
+            if (hasPendingEnd) return;
             if (ctx.Phase == GamePhase.SuddenDeath && damage > 0)
-            {
-                EndMatch(owner.Opponent(), MatchEndReason.SuddenDeath);
-                return;
-            }
-            if (hpLeft <= 0)
-            {
-                EndMatch(owner.Opponent(), MatchEndReason.KnockOut);
-            }
+                QueueEnd(owner.Opponent(), MatchEndReason.SuddenDeath);
+            else if (hpLeft <= 0)
+                QueueEnd(owner.Opponent(), MatchEndReason.KnockOut);
+        }
+
+        bool hasPendingEnd;
+        PlayerId pendingWinner;
+        MatchEndReason pendingReason;
+
+        void QueueEnd(PlayerId winner, MatchEndReason reason)
+        {
+            hasPendingEnd = true;
+            pendingWinner = winner;
+            pendingReason = reason;
+        }
+
+        void LateUpdate()
+        {
+            if (!hasPendingEnd) return;
+            hasPendingEnd = false;
+            if (Ctx != null && Ctx.IsPlaying) EndMatch(pendingWinner, pendingReason);
         }
 
         void EndMatch(PlayerId winner, MatchEndReason reason)
@@ -257,6 +272,7 @@ namespace IslandRocketRumble
             if (slowMo != null) { StopCoroutine(slowMo); slowMo = null; }
             Time.timeScale = 1f;
             HasResult = false;
+            hasPendingEnd = false;
 
             var ctx = Ctx;
             if (ctx != null) ctx.ResetMatch();
