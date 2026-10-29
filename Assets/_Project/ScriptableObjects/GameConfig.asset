@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e22ee5c075676e548939f80b45a4f3a7, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  matchDuration: 300
+  tierInterval: 45
+  islandMaxHp: 600
+  countdownSeconds: 3
+  moveSpeed: 4.5
+  stunDuration: 2.5
+  partDropInterval: 5
+  partWarningTime: 2.5
+  partLifetime: 15
+  partTypeWeights:
+  - 3
+  - 2
+  - 2
+  - 1.5
+  - 1
+  rocketFlightTime: 1.6
+  rocketArcHeight: 7
+  rageLevels:
+  - damageThreshold: 0
+    throwInterval: 12
+    gemsPerThrow: 1
+    scale: 1
+  - damageThreshold: 200
+    throwInterval: 9
+    gemsPerThrow: 1
+    scale: 1.05
+  - damageThreshold: 500
+    throwInterval: 6
+    gemsPerThrow: 2
+    scale: 1.12
+  - damageThreshold: 900
+    throwInterval: 3.5
+    gemsPerThrow: 3
+    scale: 1.25
+  gemWarningTime: 1.2
+  gemHitRadius: 0.9
+  robotDrops:
+  - rocketTier: 1
+    count: 1
+    rareChance: 0
+  - rocketTier: 2
+    count: 1
+    rareChance: 0.05
+  - rocketTier: 3
+    count: 2
+    rareChance: 0.15
+  - rocketTier: 4
+    count: 2
+    rareChance: 0.3
+  - rocketTier: 5
+    count: 3
+    rareChance: 0.5
