@@ -5,10 +5,19 @@ using UText = UnityEngine.UI.Text;
 
 namespace IslandRocketRumble
 {
-    /// <summary>How to play: keycaps for both players, the 4 steps, grey-slot rule, rocket tiers, red-circle warning.</summary>
+    /// <summary>
+    /// How to play, two pages (A/D or arrows to flip). Page 1: keycaps, the 4 steps, grey-slot rule, rocket tiers, red-circle
+    /// warning. Page 2: what parts are for (rockets, repair, upgrades), the robot and power-ups.
+    /// </summary>
     public class HowToPlayScreen : UIScreen
     {
         RectTransform card;
+        RectTransform page;
+        RectTransform page1;
+        RectTransform page2;
+        UText pageLabel;
+        int pageIndex;
+        readonly UText[] infoTexts = new UText[6];
         RectTransform startHint;
         readonly List<RectTransform> popTargets = new List<RectTransform>();
 
@@ -36,9 +45,17 @@ namespace IslandRocketRumble
             UIFactory.Chunky(title, 3f, 4f);
             popTargets.Add(ribbon);
 
+            page = page1 = UIFactory.Stretch(card, "Page1");
             BuildPlayerKeys();
             BuildSteps();
             BuildRules();
+
+            page2 = UIFactory.Stretch(card, "Page2");
+            BuildInfoCards();
+            page2.gameObject.SetActive(false);
+
+            pageLabel = UIFactory.Txt(card, "PageLabel", "", 26, Palette.Ink, TextAnchor.MiddleCenter, UIFactory.BottomCenter,
+                new Vector2(0f, 62f), new Vector2(620f, 32f), true);
 
             // Start hint
             Image hintFill;
@@ -76,7 +93,7 @@ namespace IslandRocketRumble
 
         void PlayerTag(PlayerId id, string text, Vector2 pos)
         {
-            var tag = UIFactory.Panel(card, "Tag_" + UIText.PlayerTag(id), UIFactory.Center, pos, new Vector2(300f, 60f),
+            var tag = UIFactory.Panel(page, "Tag_" + UIText.PlayerTag(id), UIFactory.Center, pos, new Vector2(300f, 60f),
                 Palette.Player(id), 30f, 4f, false);
             var t = UIFactory.Txt(tag, "Label", text, 32, Color.white, TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(0f, 1f),
                 new Vector2(290f, 56f), true);
@@ -86,7 +103,7 @@ namespace IslandRocketRumble
 
         RectTransform Keycap(string label, Vector2 pos, Vector2 size)
         {
-            var keyRoot = UIFactory.Rect(card, "Key_" + label, UIFactory.Center, pos, size);
+            var keyRoot = UIFactory.Rect(page, "Key_" + label, UIFactory.Center, pos, size);
             var depth = UIFactory.Img(keyRoot, "Depth", UISprites.Rounded, Palette.Ink, UIFactory.Center, new Vector2(0f, -6f), size);
             UIFactory.SetRadius(depth, 14f);
             var face = UIFactory.Panel(keyRoot, "Face", UIFactory.Center, Vector2.zero, size, Color.white, 14f, 4f, false);
@@ -98,7 +115,7 @@ namespace IslandRocketRumble
 
         void SmallLabel(string text, Vector2 pos)
         {
-            UIFactory.Txt(card, "Lbl", text, 22, UIFactory.WithAlpha(Palette.Ink, 0.75f), TextAnchor.MiddleCenter, UIFactory.Center, pos,
+            UIFactory.Txt(page, "Lbl", text, 22, UIFactory.WithAlpha(Palette.Ink, 0.75f), TextAnchor.MiddleCenter, UIFactory.Center, pos,
                 new Vector2(260f, 30f));
         }
 
@@ -116,7 +133,7 @@ namespace IslandRocketRumble
             float[] ys = { 300f, 205f, 110f, 30f };
             for (int i = 0; i < steps.Length; i++)
             {
-                var row = UIFactory.Rect(card, "Step" + (i + 1), UIFactory.Center, new Vector2(300f, ys[i]), new Vector2(980f, 84f));
+                var row = UIFactory.Rect(page, "Step" + (i + 1), UIFactory.Center, new Vector2(300f, ys[i]), new Vector2(980f, 84f));
                 var num = UIFactory.Img(row, "Num", UISprites.Circle, Palette.CraftRing, UIFactory.MidLeft, new Vector2(34f, 0f),
                     new Vector2(62f, 62f));
                 UIFactory.AddOutline(num, Palette.Ink, 3f);
@@ -134,15 +151,15 @@ namespace IslandRocketRumble
         void BuildRules()
         {
             // "ของไม่พอ = ช่องเทา" with an affordable and a greyed sample slot
-            var row = UIFactory.Rect(card, "GreyRule", UIFactory.Center, new Vector2(300f, -65f), new Vector2(980f, 80f));
+            var row = UIFactory.Rect(page, "GreyRule", UIFactory.Center, new Vector2(300f, -65f), new Vector2(980f, 80f));
             SampleSlot(row, new Vector2(34f, 0f), true);
             SampleSlot(row, new Vector2(110f, 0f), false);
-            UIFactory.Txt(row, "Text", "ของไม่พอ = ช่องเทา  (กดคราฟไม่ได้)", 29, Palette.Ink, TextAnchor.MiddleLeft, UIFactory.MidLeft,
+            UIFactory.Txt(row, "Text", "ของไม่พอ หรือยังชาร์จไม่เสร็จ = ช่องเทา", 29, Palette.Ink, TextAnchor.MiddleLeft, UIFactory.MidLeft,
                 new Vector2(160f + 400f, 0f), new Vector2(800f, 60f));
             popTargets.Add(row);
 
             // Rocket tier strip
-            var strip = UIFactory.Panel(card, "TierStrip", UIFactory.Center, new Vector2(300f, -226f), new Vector2(980f, 216f),
+            var strip = UIFactory.Panel(page, "TierStrip", UIFactory.Center, new Vector2(300f, -226f), new Vector2(980f, 216f),
                 Color.white, 26f, 4f, false);
             for (int i = 0; i < 5; i++)
             {
@@ -165,7 +182,7 @@ namespace IslandRocketRumble
             popTargets.Add(strip);
 
             // Red circle warning (left column bottom)
-            var warn = UIFactory.Panel(card, "Warn", UIFactory.Center, new Vector2(-560f, -320f), new Vector2(480f, 130f),
+            var warn = UIFactory.Panel(page, "Warn", UIFactory.Center, new Vector2(-560f, -320f), new Vector2(480f, 130f),
                 UIFactory.WithAlpha(Palette.Danger, 0.12f), 30f, 4f, false);
             var ring = UIFactory.Img(warn, "Ring", UISprites.CircleRing, Palette.Danger, UIFactory.MidLeft, new Vector2(66f, 0f),
                 new Vector2(96f, 96f));
@@ -186,6 +203,67 @@ namespace IslandRocketRumble
             if (!affordable) icon.color = new Color(col.r, col.g, col.b, 0.7f);
         }
 
+        // ------------------------------------------------------------------ page 2
+
+        void BuildInfoCards()
+        {
+            string[] titles = { "เก็บชิ้นส่วน", "ยิงจรวด", "ซ่อมเกาะ", "อัปเกรดตัวเอง", "หุ่น cpe40", "ไอเทมพิเศษ" };
+            Sprite[] icons = { UISprites.Part(PartType.Gear), UISprites.Rocket(3), UISprites.Heart, UISprites.Star, UISprites.Part(PartType.Chip), UISprites.Sparkle };
+            Color[] colors = { Palette.Tier(PartTier.Copper), Palette.PipBlue, Palette.Danger, Palette.HelmetYellow, Palette.HelmetOrange, Palette.Leaf };
+            for (int i = 0; i < titles.Length; i++)
+            {
+                float x = -540f + (i % 3) * 540f;
+                float y = i < 3 ? 185f : -175f;
+                var box = UIFactory.Panel(page2, "Info" + i, UIFactory.Center, new Vector2(x, y), new Vector2(516f, 340f), Color.white, 26f, 4f, false);
+                var icon = UIFactory.Icon(box, "Icon", icons[i], colors[i], UIFactory.TopLeft, new Vector2(48f, -46f), 58f, 2f);
+                icon.name = "Icon";
+                UIFactory.Txt(box, "Title", titles[i], 34, UIText.Darker(colors[i], 0.75f), TextAnchor.MiddleLeft, UIFactory.TopLeft,
+                    new Vector2(90f + 190f, -46f), new Vector2(380f, 50f), true);
+                infoTexts[i] = UIFactory.WrapTxt(box, "Text", "", 29, Palette.Ink, TextAnchor.UpperLeft, UIFactory.TopCenter,
+                    new Vector2(0f, -200f), new Vector2(476f, 230f));
+                infoTexts[i].lineSpacing = 1.15f;
+            }
+        }
+
+        void FillInfoCards()
+        {
+            var cfg = root.Config;
+            if (cfg == null) return;
+            var drops = cfg.robotDrops;
+            string costs = string.Join(", ", System.Array.ConvertAll(cfg.upgradeCosts, c => c.ToString()));
+            infoTexts[0].text = "ชิ้นส่วนตกบนเกาะตลอดเวลา เดินไปเก็บได้เลย\n"
+                + "เกรดขึ้นทุก " + cfg.tierInterval.ToString("0") + " วิ\n"
+                + "เกรดขึ้นแล้ว ของเก่า " + cfg.tierConvertRatio + " ชิ้นแปลงเป็นของใหม่ 1 ชิ้นเอง";
+            infoTexts[1].text = "ยิงเกาะศัตรูให้เลือดหมดเพื่อชนะ\n"
+                + "เลือดเกาะเริ่มที่ " + cfg.islandMaxHp + "\n"
+                + "ยิงแล้วต้องรอชาร์จ " + cfg.rocketCooldowns[0].ToString("0") + " วิ (T1) ถึง " + cfg.rocketCooldowns[4].ToString("0") + " วิ (T5)\n"
+                + "ดูแถบเหลืองบนแท่นยิง";
+            infoTexts[2].text = "ช่องหัวใจในเมนูคราฟ\n"
+                + "ใช้ชิ้นส่วนอะไรก็ได้ " + cfg.repairCost + " ชิ้น ฟื้น " + cfg.repairAmount + " HP\n"
+                + "ซ่อมซ้ำได้ทุก " + cfg.repairCooldown.ToString("0") + " วิ\n"
+                + "ตอน Sudden Death ซ่อมไม่ได้";
+            infoTexts[3].text = "ช่องดาวในเมนูคราฟ\n"
+                + "ใช้ชิ้นส่วนอะไรก็ได้ " + costs + " ชิ้น ตามลำดับ\n"
+                + "เลือกการ์ด 1 จาก 3 ใบ\n"
+                + "สายโจมตี ป้องกัน คล่องตัว สูงสุด " + cfg.upgradeCosts.Length + " ครั้ง";
+            infoTexts[4].text = "ยิงหุ่นแล้วได้ชิ้นส่วน " + drops[0].count + "-" + drops[drops.Length - 1].count + " ชิ้นลงเกาะตัวเอง\n"
+                + "ยิ่งโกรธยิ่งปาถี่ และแปลงร่างทุกเลเวล\n"
+                + "เป้าแดงเหลืองคือจุดอ่อน\n"
+                + "ยิงโดนตอนเปิด ดรอป ×" + cfg.weakPointDropMultiplier;
+            infoTexts[5].text = "โล่: กันจรวดได้ 1 ลูก\n"
+                + "รองเท้า: เดินเร็วขึ้น " + cfg.speedBoostDuration.ToString("0") + " วิ\n"
+                + "แม่เหล็ก: ดูดชิ้นส่วน " + cfg.magnetDuration.ToString("0") + " วิ\n"
+                + "หัวใจ: ฟื้น " + cfg.heartHeal + " HP";
+        }
+
+        void SetPage(int index)
+        {
+            pageIndex = index;
+            page1.gameObject.SetActive(index == 0);
+            page2.gameObject.SetActive(index == 1);
+            pageLabel.text = "◀ ▶ เปลี่ยนหน้า " + (index + 1) + "/2";
+        }
+
         // ------------------------------------------------------------------ lifecycle
 
         protected override void OnShow()
@@ -199,6 +277,8 @@ namespace IslandRocketRumble
                     tierDmg[i].text = "DMG " + r.damage;
                 }
             }
+            FillInfoCards();
+            SetPage(0);
             warnText.text = "หลบวงแดง!\nโดนอัญมณี = สตั้น " + root.StunDuration.ToString("0.#") + " วิ";
 
             UITween.PopIn(card, 0.4f, 0f);
@@ -226,6 +306,12 @@ namespace IslandRocketRumble
             for (int i = 0; i < 2; i++)
             {
                 var id = (PlayerId)i;
+                if (PlayerInput2P.LeftPressed(id) || PlayerInput2P.RightPressed(id))
+                {
+                    SetPage(1 - pageIndex);
+                    UITween.PopIn(pageIndex == 0 ? page1 : page2, 0.25f, 0f);
+                    break;
+                }
                 if (PlayerInput2P.ConfirmPressed(id) && Time.unscaledTime - lastConfirm > 0.5f)
                 {
                     lastConfirm = Time.unscaledTime;
