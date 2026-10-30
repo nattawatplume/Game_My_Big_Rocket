@@ -36,6 +36,10 @@ namespace IslandRocketRumble
         public int Hp { get; private set; }
         public int MaxHp { get; private set; }
         public bool IsDestroyed => Hp <= 0;
+        /// <summary>The next rocket is absorbed instead of hurting the island.</summary>
+        public bool ShieldActive => shieldDome != null;
+
+        GameObject shieldDome;
 
         struct PropState
         {
@@ -130,6 +134,15 @@ namespace IslandRocketRumble
             if (ctx != null && !ctx.IsPlaying) return;
             if (Hp <= 0) return;
 
+            if (ShieldActive)
+            {
+                RemoveShield();
+                GameEvents.RaiseShieldBlocked(owner, hit.point);
+                RobotFloatingText.Spawn("BLOCKED!", hit.point + Vector3.up * 1.5f, Palette.HelmetYellow, 0.1f, 1f, 0.9f);
+                RobotFx.Burst("ShieldPop", hit.point + Vector3.up, RobotFx.RingMaterial, 24, Palette.Sea, Palette.Cream, 2f, 5f, 0.2f, 0.5f, 0.4f, 0.8f, 0.2f);
+                return;
+            }
+
             int dmg = hit.recipe != null ? Mathf.Max(0, hit.recipe.damage) : 0;
             float impact = hit.recipe != null ? hit.recipe.impactScale : 1f;
             Vector3 point = new Vector3(hit.point.x, Center.y, hit.point.z);
@@ -154,6 +167,30 @@ namespace IslandRocketRumble
             GameEvents.RaiseIslandDamaged(owner, dmg, Hp, point);
         }
 
+        // ---------------- Shield ----------------
+
+        public void GiveShield()
+        {
+            if (ShieldActive) return;
+            shieldDome = GameplayUtil.CreatePrimitive(PrimitiveType.Sphere, "ShieldDome");
+            shieldDome.transform.SetParent(transform, true);
+            shieldDome.transform.position = Center;
+            shieldDome.transform.localScale = new Vector3(topHalfExtent * 2.9f, 6f, topHalfExtent * 2.9f);
+            var r = shieldDome.GetComponent<Renderer>();
+            r.sharedMaterial = RobotFx.CreateTransparentMaterial(null);
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            RobotFx.SetMaterialColor(r.sharedMaterial, new Color(Palette.Sea.r, 0.85f, 1f, 0.28f));
+            StartCoroutine(PopIn(shieldDome.transform));
+        }
+
+        void RemoveShield()
+        {
+            if (shieldDome == null) return;
+            Destroy(shieldDome.GetComponent<Renderer>().sharedMaterial);
+            Destroy(shieldDome);
+            shieldDome = null;
+        }
+
         // ---------------- Reset ----------------
 
         /// <summary>Full HP, craters removed, props restored, crack tint and shake cleared.</summary>
@@ -164,6 +201,7 @@ namespace IslandRocketRumble
             shakeRoutine = null;
 
             ResetHpOnly();
+            RemoveShield();
 
             foreach (var c in craters) if (c != null) Destroy(c);
             craters.Clear();

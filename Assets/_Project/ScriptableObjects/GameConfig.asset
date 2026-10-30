@@ -18,7 +18,7 @@ MonoBehaviour:
   countdownSeconds: 3
   moveSpeed: 4.5
   stunDuration: 2.5
-  partDropInterval: 5
+  partDropInterval: 2.5
   partWarningTime: 2.5
   partLifetime: 15
   partTypeWeights:
@@ -50,17 +50,17 @@ MonoBehaviour:
   gemHitRadius: 0.9
   robotDrops:
   - rocketTier: 1
-    count: 1
+    count: 3
     rareChance: 0
   - rocketTier: 2
-    count: 1
+    count: 3
     rareChance: 0.05
   - rocketTier: 3
-    count: 2
+    count: 4
     rareChance: 0.15
   - rocketTier: 4
-    count: 2
+    count: 4
     rareChance: 0.3
   - rocketTier: 5
-    count: 3
+    count: 5
     rareChance: 0.5

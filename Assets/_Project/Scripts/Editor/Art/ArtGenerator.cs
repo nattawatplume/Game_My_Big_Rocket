@@ -36,6 +36,7 @@ namespace IslandRocketRumble.EditorTools
             BuildCharacters();
             BuildCosmetics();
             BuildRobot();
+            BuildPowerUps();
             BuildRockets();
             BuildParts();
             BuildIslands();

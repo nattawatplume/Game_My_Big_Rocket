@@ -133,6 +133,9 @@ namespace IslandRocketRumble.EditorTools
             health.owner = owner;
             health.craterPrefab = LoadPrefab("FX/Crater");
 
+            var powerUps = island.AddComponent<PowerUpSpawner>();
+            powerUps.prefabs = new[] { LoadPrefab("PowerUps/Shield"), LoadPrefab("PowerUps/Speed"), LoadPrefab("PowerUps/Magnet") };
+
             var spawner = island.AddComponent<PartSpawner>();
             spawner.owner = owner;
             spawner.warningRingPrefab = LoadPrefab("FX/WarningRing");

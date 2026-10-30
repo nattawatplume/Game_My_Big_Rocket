@@ -54,6 +54,7 @@ namespace IslandRocketRumble
         Renderer[] bodyRenderers = new Renderer[0];
         Color[] baseColors = new Color[0];
         bool[] isEye = new bool[0];
+        bool[] isHull = new bool[0];
         bool colorsCaptured;
         bool tintDirty = true;
         float flashTimer;
@@ -72,6 +73,19 @@ namespace IslandRocketRumble
         bool rigReady;
         readonly List<GemProjectile> gems = new List<GemProjectile>();
 
+        // forms (children of Visual named FormN..., shown from rage level N up)
+        readonly List<GameObject>[] formParts = { new List<GameObject>(), new List<GameObject>(), new List<GameObject>() };
+        Transform siren;
+        Coroutine transformRoutine;
+        bool transforming;
+        float transformSpin, transformHop, transformPunch;
+
+        // weak point
+        Transform weakMark;
+        Material weakMaterial;
+        bool weakOpen;
+        float weakTimer;
+
         // fx
         ParticleSystem bubbles, flame, steam, smoke, sparks;
 
@@ -84,6 +98,7 @@ namespace IslandRocketRumble
             baseScale = transform.localScale;
             CacheRig();
             BuildRageFx();
+            BuildWeakMark();
             nextTarget = Random.value < 0.5f ? 0 : 1;
         }
 
@@ -103,6 +118,14 @@ namespace IslandRocketRumble
             throwing = false;
             throwRoutine = null;
             bucketTilt = 0f;
+            transformRoutine = null;
+            transforming = false;
+            transformSpin = transformHop = transformPunch = 0f;
+        }
+
+        void OnDestroy()
+        {
+            if (weakMaterial != null) Destroy(weakMaterial);
         }
 
         void Start()
@@ -111,6 +134,7 @@ namespace IslandRocketRumble
             CaptureColors();
             if (throwTimer < 0f) throwTimer = CurrentInterval();
             ApplyRageVisuals(level);
+            ApplyForm(level);
             GameEvents.RaiseRobotRageChanged(level, accumulated);
         }
 
@@ -133,6 +157,7 @@ namespace IslandRocketRumble
             {
                 StopThrowing();
                 ClearProjectiles();
+                SetWeakOpen(false);
             }
         }
 
@@ -152,6 +177,12 @@ namespace IslandRocketRumble
             flashTimer = 0f;
             hitTimer = 10f;
             tintDirty = true;
+            transformRoutine = null;
+            transforming = false;
+            transformSpin = transformHop = transformPunch = 0f;
+            weakTimer = 0f;
+            SetWeakOpen(false);
+            ApplyForm(0);
             ApplyRageVisuals(0);
             GameEvents.RaiseRobotRageChanged(0, 0);
         }
@@ -183,6 +214,7 @@ namespace IslandRocketRumble
             var cfg = Config;
             int dmg = hit.recipe != null ? Mathf.Max(0, hit.recipe.damage) : 0;
             accumulated += dmg;
+            bool critical = weakOpen;
 
             int newLevel = cfg.RageLevelFor(accumulated);
             if (newLevel != level)
@@ -190,7 +222,10 @@ namespace IslandRocketRumble
                 level = newLevel;
                 ApplyRageVisuals(level);
                 throwTimer = Mathf.Min(throwTimer, CurrentInterval());
+                if (transformRoutine != null) StopCoroutine(transformRoutine);
+                transformRoutine = StartCoroutine(TransformRoutine());
             }
+
 
             GameEvents.RaiseRobotHit(hit.shooter, hit.recipe);
             GameEvents.RaiseRobotRageChanged(level, accumulated);
@@ -202,12 +237,124 @@ namespace IslandRocketRumble
             RobotFloatingText.Spawn("BONK!", transform.position + Vector3.up * (2.1f * rageScale) + new Vector3(Random.Range(-0.4f, 0.4f), 0f, 0f),
                 Palette.Danger, 0.06f, 0.6f, 0.7f);
 
-            DropParts(hit);
+            DropParts(hit, critical);
+            if (critical)
+            {
+                SetWeakOpen(false);
+                weakTimer = cfg.weakPointInterval;
+                RobotFloatingText.Spawn("CRITICAL! x" + cfg.weakPointDropMultiplier, transform.position + Vector3.up * (1.6f * rageScale),
+                    Palette.HelmetYellow, 0.09f, 1f, 0.9f);
+            }
+        }
+
+        // ------------------------------------------------------------------ transformation
+
+        IEnumerator TransformRoutine()
+        {
+            transforming = true;
+            StopThrowing();
+            SetWeakOpen(false);
+            GameEvents.RaiseRobotTransformed(level);
+            float duration = Mathf.Max(0.4f, Config.transformDuration);
+            float swapAt = duration * 0.5f;
+            bool swapped = false;
+            for (float e = 0f; e < duration; e += Time.deltaTime)
+            {
+                float k = e / duration;
+                transformSpin = Mathf.SmoothStep(0f, 1080f, Mathf.Clamp01(e / swapAt));
+                transformHop = Mathf.Sin(Mathf.Clamp01(e / swapAt) * Mathf.PI) * 1.1f;
+                if (!swapped && e >= swapAt)
+                {
+                    swapped = true;
+                    ApplyForm(level);
+                    flashTimer = 0.18f;
+                    tintDirty = true;
+                    transformPunch = 1f;
+                    Vector3 at = transform.position + Vector3.up * (1f * rageScale);
+                    RobotFx.Burst("TransformBurst", at, RobotFx.DotMaterial, 60, Palette.HelmetYellow, Palette.Danger, 3f, 7f, 0.15f, 0.4f, 0.5f, 1f, 0.6f);
+                    RobotFx.Burst("TransformRing", at, RobotFx.RingMaterial, 12, Palette.Cream, Palette.HelmetOrange, 1.5f, 3f, 0.5f, 0.9f, 0.5f, 0.8f, -0.05f);
+                    RobotFloatingText.Spawn("TRANSFORM!", transform.position + Vector3.up * (2.8f * rageScale), Palette.Danger, 0.1f, 1.1f, 0.8f);
+                }
+                transformPunch = Mathf.MoveTowards(transformPunch, 0f, Time.deltaTime * 2.5f);
+                yield return null;
+            }
+            transformSpin = transformHop = transformPunch = 0f;
+            transforming = false;
+            transformRoutine = null;
+            throwTimer = Mathf.Max(throwTimer, 1f);
+            weakTimer = Mathf.Min(weakTimer, 3f);
+        }
+
+        void ApplyForm(int lv)
+        {
+            for (int i = 0; i < formParts.Length; i++)
+                foreach (var part in formParts[i])
+                    if (part != null) part.SetActive(lv >= i + 1);
+            tintDirty = true;
+        }
+
+        // ------------------------------------------------------------------ weak point
+
+        void BuildWeakMark()
+        {
+            var go = new GameObject("WeakPoint");
+            weakMark = go.transform;
+            weakMark.SetParent(transform, false);
+            weakMaterial = RobotFx.CreateTransparentMaterial(null);
+            for (int i = 0; i < 2; i++)
+            {
+                var ring = new GameObject(i == 0 ? "Outer" : "Inner");
+                ring.transform.SetParent(weakMark, false);
+                ring.transform.localScale = Vector3.one * (i == 0 ? 1f : 0.45f);
+                ring.AddComponent<MeshFilter>().sharedMesh = i == 0 ? RobotFx.RingMesh : RobotFx.DiscMesh;
+                var mr = ring.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = weakMaterial;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            go.SetActive(false);
+        }
+
+        void SetWeakOpen(bool open)
+        {
+            if (weakOpen == open) return;
+            weakOpen = open;
+            if (weakMark != null) weakMark.gameObject.SetActive(open);
+            GameEvents.RaiseRobotWeakPoint(open);
+        }
+
+        void UpdateWeakPoint(float dt, float t)
+        {
+            var ctx = MatchContext.Instance;
+            if (ctx != null && ctx.IsPlaying && level >= 1 && !transforming)
+            {
+                weakTimer -= dt;
+                if (weakTimer <= 0f)
+                {
+                    var cfg = Config;
+                    bool opening = !weakOpen;
+                    SetWeakOpen(opening);
+                    weakTimer = opening ? cfg.weakPointDuration : cfg.weakPointInterval;
+                    if (opening)
+                        RobotFloatingText.Spawn("WEAK POINT!", transform.position + Vector3.up * (2.8f * rageScale), Palette.HelmetYellow, 0.08f, 1.2f, 0.7f);
+                }
+            }
+
+            if (!weakOpen || weakMark == null) return;
+            var cam = Camera.main;
+            if (cam == null) return;
+            // Face the camera in front of the robot's chest, whatever its scale.
+            Vector3 toCam = -cam.transform.forward;
+            weakMark.position = transform.position + Vector3.up * (0.9f * rageScale) + toCam * (1.6f * rageScale);
+            weakMark.rotation = Quaternion.FromToRotation(Vector3.up, toCam);
+            float s = 0.55f * (1f + 0.15f * Mathf.Sin(t * 9f));
+            Vector3 parent = transform.lossyScale;
+            weakMark.localScale = new Vector3(s / parent.x, s / parent.y, s / parent.z) * rageScale;
+            RobotFx.SetMaterialColor(weakMaterial, Color.Lerp(Palette.Danger, Palette.HelmetYellow, 0.5f + 0.5f * Mathf.Sin(t * 9f)));
         }
 
         // ------------------------------------------------------------------ drops
 
-        void DropParts(RocketHit hit)
+        void DropParts(RocketHit hit, bool critical)
         {
             var ctx = MatchContext.Instance;
             var cfg = Config;
@@ -226,6 +373,7 @@ namespace IslandRocketRumble
                 }
             }
             if (!found || drop.count <= 0) return;
+            if (critical) drop.count *= Mathf.Max(1, cfg.weakPointDropMultiplier);
 
             IPartSpawner spawner = ctx.PartSpawner(hit.shooter);
             if (spawner == null) return;
@@ -291,7 +439,7 @@ namespace IslandRocketRumble
         void UpdateThrowing(float dt)
         {
             var ctx = MatchContext.Instance;
-            if (ctx == null || !ctx.IsPlaying) return;
+            if (ctx == null || !ctx.IsPlaying || transforming) return;
 
             if (throwTimer < 0f) throwTimer = CurrentInterval();
             throwTimer -= dt;
@@ -391,6 +539,7 @@ namespace IslandRocketRumble
             Animate(t);
             UpdateTint(dt);
             UpdateThrowing(dt);
+            UpdateWeakPoint(dt, t);
         }
 
         void Animate(float t)
@@ -421,9 +570,16 @@ namespace IslandRocketRumble
 
             if (visual != null)
             {
-                visual.localPosition = visualBasePos + new Vector3(0f, bob, 0f) + shake;
-                visual.localScale = Vector3.Scale(visualBaseScale, new Vector3(1f + squash, 1f - squash, 1f + squash));
-                visual.localRotation = visualBaseRot * Quaternion.Euler(0f, 0f, wobble + angry);
+                float punch = 1f + 0.35f * transformPunch;
+                visual.localPosition = visualBasePos + new Vector3(0f, bob + transformHop, 0f) + shake;
+                visual.localScale = Vector3.Scale(visualBaseScale, new Vector3(1f + squash, 1f - squash, 1f + squash)) * punch;
+                visual.localRotation = visualBaseRot * Quaternion.Euler(0f, transformSpin, wobble + angry);
+            }
+
+            if (siren != null)
+            {
+                float blink = 1f + 0.25f * Mathf.Sin(t * 12f);
+                siren.localScale = new Vector3(blink, 1f, blink);
             }
 
             // cross-eyes wiggle: both eyes drift toward / away from the nose in opposite directions
@@ -468,9 +624,16 @@ namespace IslandRocketRumble
             {
                 var r = bodyRenderers[i];
                 if (r == null) continue;
-                Color c = flash ? Color.white : (isEye[i] && level >= 2 ? Palette.Danger : baseColors[i]);
+                Color c = flash ? Color.white : (isEye[i] && level >= 2 ? Palette.Danger : FormColor(i));
                 RobotFx.Tint(r, c);
             }
+        }
+
+        /// <summary>The body heats up toward red in the later forms.</summary>
+        Color FormColor(int i)
+        {
+            if (!isHull[i] || level < 2) return baseColors[i];
+            return Color.Lerp(baseColors[i], Palette.Danger, level >= 3 ? 0.6f : 0.25f);
         }
 
         // ------------------------------------------------------------------ setup helpers
@@ -507,6 +670,14 @@ namespace IslandRocketRumble
                 string n = all[i].name.ToLowerInvariant();
                 if (all[i] != visual && (n.Contains("wheel") || n.Contains("track"))) wheels.Add(all[i]);
             }
+            for (int i = 0; i < formParts.Length; i++) formParts[i].Clear();
+            for (int i = 0; i < all.Length; i++)
+            {
+                string n = all[i].name;
+                if (n.Length > 5 && n.StartsWith("Form") && n[4] >= '1' && n[4] <= '3')
+                    formParts[n[4] - '1'].Add(all[i].gameObject);
+                if (n == "Form1_Siren") siren = all[i];
+            }
             wheelBaseRot = new Quaternion[wheels.Count];
             for (int i = 0; i < wheels.Count; i++) wheelBaseRot[i] = wheels[i].localRotation;
 
@@ -516,12 +687,15 @@ namespace IslandRocketRumble
                 if (!(rs[i] is ParticleSystemRenderer)) list.Add(rs[i]);
             bodyRenderers = list.ToArray();
             isEye = new bool[bodyRenderers.Length];
+            isHull = new bool[bodyRenderers.Length];
             baseColors = new Color[bodyRenderers.Length];
             for (int i = 0; i < bodyRenderers.Length; i++)
             {
                 Transform rt = bodyRenderers[i].transform;
                 isEye[i] = (eyeL != null && rt.IsChildOf(eyeL)) || (eyeR != null && rt.IsChildOf(eyeR));
                 baseColors[i] = Color.white;
+                string rn = rt.name;
+                isHull[i] = rn == "Body" || rn == "Base" || rn == "Bucket" || rn == "Head";
             }
             rigReady = true;
         }

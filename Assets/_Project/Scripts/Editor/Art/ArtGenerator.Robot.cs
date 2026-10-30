@@ -116,10 +116,93 @@ namespace IslandRocketRumble.EditorTools
             MeshNode("Bucket", vt, bucket, mRobotYellow, new Vector3(0f, 0.5f, 0.5f));
             MeshNode("Exhaust", vt, exhaust, mMetal, new Vector3(0.28f, 1.07f, -0.42f));
 
+            BuildRobotForms(vt);
+
             Node("FireRoot", root.transform, new Vector3(0f, 1.6f, -0.06f));
             Node("ThrowPoint", root.transform, new Vector3(0f, 0.9f, 1.0f));
 
             SavePrefab(root, "Robot/Cpe40");
+        }
+
+        /// <summary>Add-on parts for each rage form. Names start with FormN; RobotBoss shows them from that rage level up.</summary>
+        static void BuildRobotForms(Transform vt)
+        {
+            // --- Form 1: alarm siren + shoulder armor
+            var mb = MB();
+            mb.Cylinder(0.11f, 0.09f, 0.06f, 10, false);
+            var sirenBase = SaveMesh("Robot_F1_SirenBase", mb);
+            mb = MB();
+            mb.Sphere(new Vector3(0f, 0.06f, 0f), new Vector3(0.085f, 0.11f, 0.085f), 2, false);
+            var sirenDome = SaveMesh("Robot_F1_SirenDome", mb);
+            mb = MB();
+            for (int side = -1; side <= 1; side += 2)
+                mb.Box(new Vector3(side * 0.5f, 1.04f, -0.12f), new Vector3(0.24f, 0.16f, 0.66f), 0.05f);
+            var armor = SaveMesh("Robot_F1_Armor", mb);
+            MeshNode("Form1_SirenBase", vt, sirenBase, mMetal, new Vector3(-0.08f, 1.55f, -0.06f));
+            MeshNode("Form1_Siren", vt, sirenDome, mRed, new Vector3(-0.08f, 1.61f, -0.06f));
+            MeshNode("Form1_Armor", vt, armor, mRobotYellow, Vector3.zero);
+
+            // --- Form 2: fist arms + bucket spikes
+            mb = MB();
+            for (int side = -1; side <= 1; side += 2)
+            {
+                Beam(mb, new Vector3(side * 0.62f, 1f, -0.1f), new Vector3(side * 0.82f, 0.72f, 0.1f), 0.13f);
+                Beam(mb, new Vector3(side * 0.82f, 0.72f, 0.1f), new Vector3(side * 0.82f, 0.62f, 0.42f), 0.12f);
+            }
+            var arms = SaveMesh("Robot_F2_Arms", mb);
+            mb = MB();
+            for (int side = -1; side <= 1; side += 2)
+                mb.Sphere(new Vector3(side * 0.82f, 0.62f, 0.52f), 0.2f, 2, false);
+            var fists = SaveMesh("Robot_F2_Fists", mb);
+            mb = MB();
+            for (int i = 0; i < 4; i++)
+            {
+                mb.At(new Vector3(-0.33f + i * 0.22f, -0.41f, 0.74f), Quaternion.Euler(90f, 0f, 0f));
+                mb.Cylinder(0.065f, 0.006f, 0.26f, 6, false);
+            }
+            var spikes = SaveMesh("Robot_F2_Spikes", mb);
+            MeshNode("Form2_Arms", vt, arms, mMetal, Vector3.zero);
+            MeshNode("Form2_Fists", vt, fists, mRed, Vector3.zero);
+            MeshNode("Form2_Spikes", vt.Find("Bucket"), spikes, mMetal, Vector3.zero);
+
+            // --- Form 3: horns, back jets, back spikes, teeth
+            mb = MB();
+            for (int side = -1; side <= 1; side += 2)
+            {
+                mb.At(new Vector3(side * 0.26f, 1.52f, -0.06f), Quaternion.Euler(0f, 0f, -side * 28f));
+                mb.Cylinder(0.08f, 0.008f, 0.42f, 8, false);
+            }
+            var horns = SaveMesh("Robot_F3_Horns", mb);
+            mb = MB();
+            for (int side = -1; side <= 1; side += 2)
+            {
+                mb.At(new Vector3(side * 0.3f, 0.62f, -0.62f));
+                mb.Cylinder(0.17f, 0.12f, 0.62f, 10, false);
+            }
+            var jets = SaveMesh("Robot_F3_Jets", mb);
+            mb = MB();
+            for (int side = -1; side <= 1; side += 2)
+            {
+                mb.At(new Vector3(side * 0.3f, 0.55f, -0.62f));
+                mb.Cylinder(0.12f, 0.17f, 0.07f, 10, false);
+            }
+            var jetTips = SaveMesh("Robot_F3_JetTips", mb);
+            mb = MB();
+            for (int i = 0; i < 3; i++)
+            {
+                mb.At(new Vector3(0f, 1.05f - i * 0.2f, -0.48f - i * 0.02f), Quaternion.Euler(-65f, 0f, 0f));
+                mb.Cylinder(0.075f, 0.006f, 0.3f, 6, false);
+            }
+            var backSpikes = SaveMesh("Robot_F3_BackSpikes", mb);
+            mb = MB();
+            for (int i = 0; i < 4; i++)
+                mb.At(new Vector3(-0.09f + i * 0.06f, 1.165f, 0.215f), Quaternion.Euler(0f, 0f, 45f)).Box(Vector3.zero, new Vector3(0.05f, 0.05f, 0.02f));
+            var teeth = SaveMesh("Robot_F3_Teeth", mb);
+            MeshNode("Form3_Horns", vt, horns, mInk, Vector3.zero);
+            MeshNode("Form3_Jets", vt, jets, mMetal, Vector3.zero);
+            MeshNode("Form3_JetTips", vt, jetTips, mRed, Vector3.zero);
+            MeshNode("Form3_BackSpikes", vt, backSpikes, mRed, Vector3.zero);
+            MeshNode("Form3_Teeth", vt, teeth, mEyeWhite, Vector3.zero);
         }
     }
 }

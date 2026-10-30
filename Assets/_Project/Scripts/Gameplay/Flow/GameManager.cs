@@ -168,6 +168,9 @@ namespace IslandRocketRumble
             if (tier != lastTier)
             {
                 lastTier = tier;
+                int ratio = ctx.config != null ? ctx.config.tierConvertRatio : 2;
+                ctx.Inventory(PlayerId.P1).ConvertBelow(tier, ratio);
+                ctx.Inventory(PlayerId.P2).ConvertBelow(tier, ratio);
                 GameEvents.RaiseTierChanged(tier);
             }
 

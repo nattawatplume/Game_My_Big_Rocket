@@ -82,6 +82,13 @@ namespace IslandRocketRumble
             var ctx = MatchContext.Instance;
             if (ctx == null || !ctx.IsPlaying || ctx.config == null) return;
 
+            int minParts = ctx.config.minPartsOnIsland;
+            if (minParts > 0 && PartsOnIsland() < minParts && TryFindFreeSpot(out Vector3 refill))
+            {
+                var key = new PartKey(PickType(ctx.CurrentTier, ctx.config), ctx.CurrentTier);
+                StartCoroutine(DropRoutine(key, refill, false));
+            }
+
             timer += Time.deltaTime;
             float interval = Mathf.Max(0.5f, ctx.config.partDropInterval);
             if (timer >= interval)
@@ -90,7 +97,7 @@ namespace IslandRocketRumble
                 if (TryFindFreeSpot(out Vector3 spot))
                 {
                     var key = new PartKey(PickType(ctx.CurrentTier, ctx.config), ctx.CurrentTier);
-                    StartCoroutine(DropRoutine(key, spot));
+                    StartCoroutine(DropRoutine(key, spot, true));
                 }
             }
         }
@@ -127,7 +134,20 @@ namespace IslandRocketRumble
 
         // ---------------- Spot / type selection ----------------
 
-        bool TryFindFreeSpot(out Vector3 spot)
+        /// <summary>Parts resting on the island plus those warned, falling or flying in.</summary>
+        int PartsOnIsland()
+        {
+            int n = reserved.Count;
+            foreach (var go in tracked)
+            {
+                if (go == null) continue;
+                var pickup = go.GetComponent<PartPickup>();
+                if (pickup != null && !pickup.IsFinished) n++;
+            }
+            return n;
+        }
+
+        public bool TryFindFreeSpot(out Vector3 spot)
         {
             Vector3 c = Center;
             Vector3 ring = RingCenter;
@@ -225,9 +245,31 @@ namespace IslandRocketRumble
             return root;
         }
 
-        IEnumerator DropRoutine(PartKey key, Vector3 spot)
+        IEnumerator DropRoutine(PartKey key, Vector3 spot, bool warn)
         {
             reserved.Add(spot);
+            if (warn) yield return WarningRoutine(key, spot);
+
+            // fall from the sky
+            var part = CreatePart(key, spot + Vector3.up * dropHeight);
+            float t = 0f;
+            float dur = Mathf.Max(0.05f, fallTime);
+            while (t < dur)
+            {
+                if (part == null) yield break;
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / dur);
+                part.transform.position = spot + Vector3.up * (dropHeight * (1f - k * k));
+                yield return null;
+            }
+
+            yield return Land(part, spot);
+            reserved.Remove(spot);
+            MakePickup(part, key, spot);
+        }
+
+        IEnumerator WarningRoutine(PartKey key, Vector3 spot)
+        {
             Color tierColor = Palette.Tier(key.tier);
             bool rare = key.tier == PartTier.Gold || key.tier == PartTier.Crystal;
             float height = rare ? rareBeamHeight : beamHeight;
@@ -301,23 +343,6 @@ namespace IslandRocketRumble
 
             tracked.Remove(warning);
             Destroy(warning);
-
-            // fall from the sky
-            var part = CreatePart(key, spot + Vector3.up * dropHeight);
-            float t = 0f;
-            float dur = Mathf.Max(0.05f, fallTime);
-            while (t < dur)
-            {
-                if (part == null) yield break;
-                t += Time.deltaTime;
-                float k = Mathf.Clamp01(t / dur);
-                part.transform.position = spot + Vector3.up * (dropHeight * (1f - k * k));
-                yield return null;
-            }
-
-            yield return Land(part, spot);
-            reserved.Remove(spot);
-            MakePickup(part, key, spot);
         }
 
         IEnumerator FlyRoutine(PartKey key, Vector3 from, Vector3 spot)

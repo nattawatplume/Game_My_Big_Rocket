@@ -34,6 +34,9 @@ namespace IslandRocketRumble
         Vector3 visualBaseScale = Vector3.one;
         Vector3 visualBasePos;
 
+        /// <summary>Set by the speed power-up.</summary>
+        public float SpeedMultiplier { get; set; } = 1f;
+
         public bool IsStunned => stunTimer > 0f;
         public float StunRemaining => Mathf.Max(0f, stunTimer);
         public bool IsMoving { get; private set; }
@@ -72,6 +75,7 @@ namespace IslandRocketRumble
         public void ResetToSpawn()
         {
             stunTimer = 0f;
+            SpeedMultiplier = 1f;
             hopPhase = 0f;
             moveBlend = 0f;
             IsMoving = false;
@@ -103,6 +107,7 @@ namespace IslandRocketRumble
             if (IsMoving)
             {
                 float speed = ctx != null && ctx.config != null ? ctx.config.moveSpeed : 4.5f;
+                speed *= SpeedMultiplier;
                 Vector3 p = transform.position + dir * (speed * Time.deltaTime);
                 Vector3 c = islandCenter != null ? islandCenter.position : spawnPos;
                 p.x = Mathf.Clamp(p.x, c.x - walkLimit, c.x + walkLimit);

@@ -33,6 +33,14 @@ namespace IslandRocketRumble
         /// <summary>The rocket previewed on the owner's workshop pad just became fully buildable.</summary>
         public static event Action<PlayerId, RocketRecipe> RocketReady;
 
+        /// <summary>The robot changed form (new rage level).</summary>
+        public static event Action<int> RobotTransformed;
+        /// <summary>The robot's weak point opened (true) or closed (false).</summary>
+        public static event Action<bool> RobotWeakPoint;
+        public static event Action<PlayerId, PowerUpType> PowerUpCollected;
+        /// <summary>(island owner, impact point) A shield absorbed a rocket.</summary>
+        public static event Action<PlayerId, UnityEngine.Vector3> ShieldBlocked;
+
         // Flow requests: UI raises these, GameManager answers by changing phase.
         public static event Action RequestHowToPlay;
         public static event Action RequestStartMatch;
@@ -59,6 +67,11 @@ namespace IslandRocketRumble
         public static void RaiseRocketPieceBuilt(PlayerId p, PartType type) => RocketPieceBuilt?.Invoke(p, type);
         public static void RaiseRocketReady(PlayerId p, RocketRecipe r) => RocketReady?.Invoke(p, r);
 
+        public static void RaiseRobotTransformed(int level) => RobotTransformed?.Invoke(level);
+        public static void RaiseRobotWeakPoint(bool open) => RobotWeakPoint?.Invoke(open);
+        public static void RaisePowerUpCollected(PlayerId p, PowerUpType type) => PowerUpCollected?.Invoke(p, type);
+        public static void RaiseShieldBlocked(PlayerId owner, UnityEngine.Vector3 point) => ShieldBlocked?.Invoke(owner, point);
+
         public static void Reset()
         {
             PhaseChanged = null; TierChanged = null; ClockTick = null; PartCollected = null;
@@ -66,6 +79,7 @@ namespace IslandRocketRumble
             RobotHit = null; GemIncoming = null; MatchEnded = null; CraftMenuToggled = null;
             RequestHowToPlay = null; RequestStartMatch = null; RequestRematch = null; RequestTitle = null;
             RocketPieceBuilt = null; RocketReady = null;
+            RobotTransformed = null; RobotWeakPoint = null; PowerUpCollected = null; ShieldBlocked = null;
         }
     }
 }

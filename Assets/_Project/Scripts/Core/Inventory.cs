@@ -34,6 +34,24 @@ namespace IslandRocketRumble
             return true;
         }
 
+        /// <summary>Turns every part below <paramref name="tier"/> into parts of that tier, same type: ratio old = 1 new, rounded up.</summary>
+        public void ConvertBelow(PartTier tier, int ratio)
+        {
+            ratio = Math.Max(1, ratio);
+            var old = new List<PartKey>();
+            foreach (var kv in counts)
+                if (kv.Key.tier < tier && kv.Value > 0) old.Add(kv.Key);
+            if (old.Count == 0) return;
+            foreach (var key in old)
+            {
+                int converted = (counts[key] + ratio - 1) / ratio;
+                counts[key] = 0;
+                var fresh = new PartKey(key.type, tier);
+                counts[fresh] = Count(fresh) + converted;
+            }
+            Changed?.Invoke();
+        }
+
         public IEnumerable<KeyValuePair<PartKey, int>> All() => counts;
 
         public void Clear()

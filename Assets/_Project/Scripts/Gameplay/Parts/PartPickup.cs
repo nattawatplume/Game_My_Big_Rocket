@@ -28,6 +28,14 @@ namespace IslandRocketRumble
 
         public bool IsFinished => finished;
 
+        /// <summary>Slides the part toward a point (magnet power-up).</summary>
+        public void PullToward(Vector3 point, float distance)
+        {
+            if (finished) return;
+            point.y = restPos.y;
+            restPos = Vector3.MoveTowards(restPos, point, distance);
+        }
+
         public void Init(PartKey partKey, PartSpawner owner, Vector3 restPosition)
         {
             key = partKey;

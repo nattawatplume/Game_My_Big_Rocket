@@ -75,6 +75,50 @@ namespace IslandRocketRumble
             return b;
         });
 
+        /// <summary>Robot form change: rising servo whine into a heavy metal stamp.</summary>
+        public static AudioClip RobotTransform => SfxSynth.Get("robot_transform", () =>
+        {
+            var b = SfxSynth.Buffer(1.1f);
+            SfxSynth.Tone(b, 0f, 0.6f, 180f, 1200f, SynthWave.Square, 0.3f, new Adsr(0.02f, 0.1f, 0.7f, 0.05f), duty: 0.3f);
+            SfxSynth.Tone(b, 0f, 0.6f, 90f, 600f, SynthWave.Triangle, 0.35f, new Adsr(0.02f, 0.1f, 0.7f, 0.05f));
+            SfxSynth.Noise(b, 0.6f, 0.2f, 0.6f, Adsr.Pluck(0.12f), 5000f, 800f, 900f);
+            SfxSynth.Tone(b, 0.6f, 0.4f, 140f, 45f, SynthWave.Sine, 0.8f, Adsr.Pluck(0.28f));
+            SfxSynth.DecaySine(b, 0.62f, 1320f, 0.25f, 0.12f);
+            SfxSynth.DecaySine(b, 0.7f, 1760f, 0.2f, 0.15f);
+            return b;
+        });
+
+        /// <summary>Weak point opens: quick alarm ping-ping.</summary>
+        public static AudioClip WeakPointOpen => SfxSynth.Get("weak_point", () =>
+        {
+            var b = SfxSynth.Buffer(0.4f);
+            SfxSynth.Tone(b, 0f, 0.12f, 1319f, 1319f, SynthWave.Square, 0.4f, Adsr.Pluck(0.08f), duty: 0.3f);
+            SfxSynth.Tone(b, 0.15f, 0.2f, 1760f, 1760f, SynthWave.Square, 0.4f, Adsr.Pluck(0.14f), duty: 0.3f);
+            return b;
+        });
+
+        /// <summary>Power-up pickup: bright rising arpeggio.</summary>
+        public static AudioClip PowerUp => SfxSynth.Get("power_up", () =>
+        {
+            var b = SfxSynth.Buffer(0.6f);
+            float[] notes = { 76, 79, 84, 88 };
+            for (int i = 0; i < notes.Length; i++)
+                SfxSynth.Bell(b, i * 0.06f, M(notes[i]), 0.4f, 0.3f);
+            SfxSynth.Tone(b, 0f, 0.25f, 400f, 1500f, SynthWave.Triangle, 0.25f, new Adsr(0.01f, 0.1f, 0.5f, 0.05f));
+            return b;
+        });
+
+        /// <summary>Shield absorbs a rocket: glassy clang.</summary>
+        public static AudioClip ShieldBlock => SfxSynth.Get("shield_block", () =>
+        {
+            var b = SfxSynth.Buffer(0.7f);
+            SfxSynth.Noise(b, 0f, 0.1f, 0.5f, Adsr.Pluck(0.06f), 7000f, 3000f, 2500f);
+            SfxSynth.DecaySine(b, 0f, 880f, 0.45f, 0.35f);
+            SfxSynth.DecaySine(b, 0f, 1397f, 0.35f, 0.3f);
+            SfxSynth.DecaySine(b, 0f, 2093f, 0.25f, 0.2f);
+            return b;
+        });
+
         /// <summary>Workshop piece snaps into place: quick ratchet clicks rising into a two-note metal "clink-clink".</summary>
         public static AudioClip BuildClink => SfxSynth.Get("build_clink", () =>
         {

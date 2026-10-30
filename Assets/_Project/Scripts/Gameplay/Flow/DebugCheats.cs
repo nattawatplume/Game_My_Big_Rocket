@@ -5,7 +5,7 @@ namespace IslandRocketRumble
 {
     /// <summary>
     /// Editor / development-build shortcuts for play-testing.
-    /// F1: give both players enough parts for every rocket · F2: skip ahead one tier · F3: last 5 seconds.
+    /// F1: give both players enough parts for every rocket · F2: skip ahead one tier · F3: last 5 seconds · F4: power-up on both islands · F5: Gold rocket hit on the robot · F6: all power-ups on both players.
     /// </summary>
     public class DebugCheats : MonoBehaviour
     {
@@ -49,6 +49,22 @@ namespace IslandRocketRumble
                 ctx.Elapsed = ctx.config.matchDuration - 5f;
                 Debug.Log("[IRR cheat] Jumped to the last 5 seconds.");
             }
+
+            if (kb.f4Key.wasPressedThisFrame)
+                foreach (var s in FindObjectsByType<PowerUpSpawner>(FindObjectsSortMode.None)) s.SpawnNow();
+
+            if (kb.f6Key.wasPressedThisFrame)
+                foreach (var player in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+                {
+                    var effects = player.GetComponent<PlayerPowerUps>();
+                    if (effects == null) effects = player.gameObject.AddComponent<PlayerPowerUps>();
+                    effects.Apply(PowerUpType.Shield);
+                    effects.Apply(PowerUpType.Speed);
+                    effects.Apply(PowerUpType.Magnet);
+                }
+
+            if (kb.f5Key.wasPressedThisFrame && ctx.Robot != null)
+                ctx.Robot.TakeRocketHit(new RocketHit { shooter = PlayerId.P1, recipe = ctx.recipes[3] });
         }
 #endif
     }

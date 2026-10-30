@@ -154,6 +154,10 @@ namespace IslandRocketRumble
             GameEvents.CraftMenuToggled += OnCraftMenuToggled;
             GameEvents.RocketPieceBuilt += OnRocketPieceBuilt;
             GameEvents.RocketReady += OnRocketReady;
+            GameEvents.RobotTransformed += OnRobotTransformed;
+            GameEvents.RobotWeakPoint += OnRobotWeakPoint;
+            GameEvents.PowerUpCollected += OnPowerUpCollected;
+            GameEvents.ShieldBlocked += OnShieldBlocked;
         }
 
         void DetachGameEvents()
@@ -172,6 +176,10 @@ namespace IslandRocketRumble
             GameEvents.CraftMenuToggled -= OnCraftMenuToggled;
             GameEvents.RocketPieceBuilt -= OnRocketPieceBuilt;
             GameEvents.RocketReady -= OnRocketReady;
+            GameEvents.RobotTransformed -= OnRobotTransformed;
+            GameEvents.RobotWeakPoint -= OnRobotWeakPoint;
+            GameEvents.PowerUpCollected -= OnPowerUpCollected;
+            GameEvents.ShieldBlocked -= OnShieldBlocked;
         }
 
         void BindMenus(MatchContext ctx)
@@ -509,6 +517,26 @@ namespace IslandRocketRumble
         void OnRocketReady(PlayerId p, RocketRecipe recipe)
         {
             Play(GameSfx.ReadyChime, 0.7f, Pan(p), 0.01f, delay: 0.3f, minInterval: 0.2f);
+        }
+
+        void OnRobotTransformed(int level)
+        {
+            Play(GameSfx.RobotTransform, 0.85f, 0f, 0.01f, minInterval: 0.2f);
+        }
+
+        void OnRobotWeakPoint(bool open)
+        {
+            if (open) Play(GameSfx.WeakPointOpen, 0.65f, 0f, 0.01f);
+        }
+
+        void OnPowerUpCollected(PlayerId p, PowerUpType type)
+        {
+            Play(GameSfx.PowerUp, 0.75f, Pan(p), 0.01f);
+        }
+
+        void OnShieldBlocked(PlayerId owner, Vector3 point)
+        {
+            Play(GameSfx.ShieldBlock, 0.85f, Pan(owner) * 1.4f, 0.02f);
         }
 
         // ---------------------------------------------------------------- handlers: craft menu
