@@ -21,6 +21,10 @@ namespace IslandRocketRumble
             public UIHpBar bar;
             public InventoryStrip strip;
             public Inventory boundInventory;
+            public int maxHp;
+            public RectTransform[] pills;
+            public UText[] pillTexts;
+            public Image[] pillFills;
             public System.Action handler;
         }
 
@@ -76,6 +80,10 @@ namespace IslandRocketRumble
             GameEvents.TierChanged += OnTierChanged;
             GameEvents.IslandDamaged += OnIslandDamaged;
             GameEvents.RobotRageChanged += OnRageChanged;
+            GameEvents.IslandHealed -= OnIslandHealed;
+            GameEvents.IslandHealed += OnIslandHealed;
+            GameEvents.UpgradePicked -= OnUpgradePicked;
+            GameEvents.UpgradePicked += OnUpgradePicked;
         }
 
         void OnDestroy()
@@ -84,6 +92,8 @@ namespace IslandRocketRumble
             GameEvents.TierChanged -= OnTierChanged;
             GameEvents.IslandDamaged -= OnIslandDamaged;
             GameEvents.RobotRageChanged -= OnRageChanged;
+            GameEvents.IslandHealed -= OnIslandHealed;
+            GameEvents.UpgradePicked -= OnUpgradePicked;
             UnbindInventories();
         }
 
@@ -141,6 +151,24 @@ namespace IslandRocketRumble
                 new Vector2(left ? 36f + 330f : -(36f + 330f), -(26f + h + 40f)), new Vector2(660f, 56f));
             ph.strip = new InventoryStrip(stripRect, !left);
 
+            // Upgrade pills below the inventory, so each player can read the other's build
+            ph.pills = new RectTransform[4];
+            ph.pillTexts = new UText[4];
+            ph.pillFills = new Image[4];
+            for (int i = 0; i < 4; i++)
+            {
+                float x = 36f + 65f + i * 138f;
+                Image pillFill;
+                var pill = UIFactory.Panel(rect, "Upgrade" + i, anchor, new Vector2(left ? x : -x, -(26f + h + 40f + 50f)),
+                    new Vector2(130f, 40f), Color.white, out pillFill, 20f, 3f, false);
+                ph.pills[i] = pill;
+                ph.pillFills[i] = pillFill;
+                ph.pillTexts[i] = UIFactory.Txt(pill, "T", "", 20, Palette.Ink, TextAnchor.MiddleCenter, UIFactory.Center,
+                    new Vector2(0f, 1f), new Vector2(126f, 36f), true);
+                pill.gameObject.SetActive(false);
+            }
+
+            ph.maxHp = root.MaxHp;
             SetHpLabel(ph, root.MaxHp, root.MaxHp);
             return ph;
         }
@@ -259,17 +287,19 @@ namespace IslandRocketRumble
             SetRage(0, false);
             for (int i = 0; i < 2; i++)
             {
+                players[i].maxHp = root.MaxHp;
                 players[i].bar.SetInstant(1f);
                 SetHpLabel(players[i], root.MaxHp, root.MaxHp);
+                RefreshUpgrades(players[i]);
             }
             RefreshTime(true);
         }
 
         void RefreshAll()
         {
-            int max = root.MaxHp;
             for (int i = 0; i < 2; i++)
             {
+                int max = players[i].maxHp;
                 int hp = root.Hp[i];
                 players[i].bar.SetInstant(hp / (float)max);
                 SetHpLabel(players[i], hp, max);
@@ -368,7 +398,7 @@ namespace IslandRocketRumble
         void OnIslandDamaged(PlayerId owner, int damage, int hpLeft, Vector3 point)
         {
             var ph = players[(int)owner];
-            int max = root.MaxHp;
+            int max = ph.maxHp;
             hpLeft = Mathf.Max(0, hpLeft);
             ph.bar.SetDamaged(hpLeft / (float)max);
             SetHpLabel(ph, hpLeft, max);
@@ -376,6 +406,51 @@ namespace IslandRocketRumble
             {
                 UITween.Shake(ph.panel, Mathf.Clamp(6f + damage * 0.06f, 6f, 26f), 0.35f);
                 UITween.Punch(ph.label, 0.15f, 0.3f);
+            }
+        }
+
+        void OnIslandHealed(PlayerId owner, int amount, int hp, int maxHp, bool announced)
+        {
+            var ph = players[(int)owner];
+            ph.maxHp = maxHp;
+            ph.bar.SetDamaged(hp / (float)maxHp);
+            SetHpLabel(ph, hp, maxHp);
+            if (announced && IsShown) UITween.Punch(ph.label, 0.15f, 0.3f);
+        }
+
+        void OnUpgradePicked(PlayerId id, UpgradeType type)
+        {
+            RefreshUpgrades(players[(int)id]);
+            if (IsShown) UITween.Punch(players[(int)id].panel, 0.08f, 0.35f);
+        }
+
+        void RefreshUpgrades(PlayerHud ph)
+        {
+            var ctx = MatchContext.Instance;
+            int shown = 0;
+            if (ctx != null)
+            {
+                var owned = ctx.Upgrades(ph.id);
+                foreach (var def in UpgradeCatalog.All)
+                {
+                    int n = owned.Count(def.type);
+                    if (n <= 0 || shown >= ph.pills.Length) continue;
+                    ph.pillTexts[shown].text = def.shortName + (n > 1 ? " ×" + n : "");
+                    ph.pillFills[shown].color = Color.Lerp(BranchColor(def.branch), Color.white, 0.55f);
+                    ph.pills[shown].gameObject.SetActive(true);
+                    shown++;
+                }
+            }
+            for (int i = shown; i < ph.pills.Length; i++) ph.pills[i].gameObject.SetActive(false);
+        }
+
+        public static Color BranchColor(UpgradeBranch branch)
+        {
+            switch (branch)
+            {
+                case UpgradeBranch.Attack: return Palette.Danger;
+                case UpgradeBranch.Defense: return Palette.PipBlue;
+                default: return Palette.Leaf;
             }
         }
 

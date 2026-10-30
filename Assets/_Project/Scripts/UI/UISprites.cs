@@ -72,6 +72,13 @@ namespace IslandRocketRumble
         });
 
         /// <summary>Triangle pointing down (speech-bubble tail).</summary>
+        public static Sprite Heart => GetIcon("heart", (x, y) =>
+        {
+            float a = x * 1.15f, b = y * 1.15f + 0.1f;
+            float k = a * a + b * b - 1f;
+            return k * k * k - a * a * b * b * b < 0f;
+        });
+
         public static Sprite TriangleDown => GetIcon("triDown", (x, y) => InPoly(x, y, triDownPoly));
 
         static readonly Vector2[] triDownPoly = { new Vector2(-0.95f, 0.95f), new Vector2(0.95f, 0.95f), new Vector2(0f, -0.95f) };

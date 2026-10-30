@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tier: 5
   displayName: Mega Overkill
-  damage: 350
+  damage: 300
   costs:
   - type: 0
     tier: 5

@@ -5,7 +5,7 @@ namespace IslandRocketRumble
 {
     /// <summary>
     /// Editor / development-build shortcuts for play-testing.
-    /// F1: give both players enough parts for every rocket · F2: skip ahead one tier · F3: last 5 seconds · F4: power-up on both islands · F5: Gold rocket hit on the robot · F6: all power-ups on both players.
+    /// F1: give both players enough parts for every rocket · F2: skip ahead one tier · F3: last 5 seconds · F4: power-up on both islands · F5: Gold rocket hit on the robot · F6: all power-ups on both players · F7: every upgrade card on both players.
     /// </summary>
     public class DebugCheats : MonoBehaviour
     {
@@ -61,6 +61,19 @@ namespace IslandRocketRumble
                     effects.Apply(PowerUpType.Shield);
                     effects.Apply(PowerUpType.Speed);
                     effects.Apply(PowerUpType.Magnet);
+                }
+
+            if (kb.f7Key.wasPressedThisFrame)
+                for (int i = 0; i < 2; i++)
+                {
+                    var id = (PlayerId)i;
+                    foreach (var def in UpgradeCatalog.All)
+                    {
+                        ctx.Upgrades(id).Add(def.type);
+                        if (def.type == UpgradeType.IslandArmor && ctx.Island(id) is IslandHealth island)
+                            island.AddMaxHp(ctx.config.islandArmorHp);
+                        GameEvents.RaiseUpgradePicked(id, def.type);
+                    }
                 }
 
             if (kb.f5Key.wasPressedThisFrame && ctx.Robot != null)

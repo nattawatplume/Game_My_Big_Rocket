@@ -64,7 +64,7 @@ namespace IslandRocketRumble
 
         /// <summary>Default rocket data from the GDD, used when MatchContext.recipes are missing.</summary>
         public static readonly string[] DefaultRocketNames = { "Firecracker", "Copper Dart", "Silver Spear", "Golden Giant", "Mega Overkill" };
-        public static readonly int[] DefaultRocketDamage = { 30, 60, 110, 190, 350 };
+        public static readonly int[] DefaultRocketDamage = { 30, 60, 110, 180, 300 };
 
         public static Color Darker(Color c, float k = 0.75f) => new Color(c.r * k, c.g * k, c.b * k, c.a);
     }

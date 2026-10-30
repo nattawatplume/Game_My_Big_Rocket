@@ -67,7 +67,7 @@ namespace IslandRocketRumble
                 Transform pt = ctx.Player(pid);
                 if (pt == null) continue;
                 if (Mathf.Abs(pt.position.y - restPos.y) > 2f) continue;
-                if (GameplayUtil.DistanceXZ(pt.position, restPos) <= collectRadius)
+                if (GameplayUtil.DistanceXZ(pt.position, restPos) <= collectRadius * ctx.Upgrades(pid).PickupRadiusMultiplier)
                 {
                     Collect(pid);
                     return;

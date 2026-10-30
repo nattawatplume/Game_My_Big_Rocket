@@ -67,6 +67,7 @@ namespace IslandRocketRumble
         public void Stun(float seconds)
         {
             if (seconds <= 0f) return;
+            if (MatchContext.Instance != null) seconds *= MatchContext.Instance.Upgrades(id).StunMultiplier;
             stunTimer = Mathf.Max(stunTimer, seconds);
             GameEvents.RaisePlayerStunned(id, seconds);
         }
@@ -108,6 +109,7 @@ namespace IslandRocketRumble
             {
                 float speed = ctx != null && ctx.config != null ? ctx.config.moveSpeed : 4.5f;
                 speed *= SpeedMultiplier;
+                if (ctx != null) speed *= ctx.Upgrades(id).SpeedMultiplier;
                 Vector3 p = transform.position + dir * (speed * Time.deltaTime);
                 Vector3 c = islandCenter != null ? islandCenter.position : spawnPos;
                 p.x = Mathf.Clamp(p.x, c.x - walkLimit, c.x + walkLimit);

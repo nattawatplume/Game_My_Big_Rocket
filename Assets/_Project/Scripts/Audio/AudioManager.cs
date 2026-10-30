@@ -158,6 +158,8 @@ namespace IslandRocketRumble
             GameEvents.RobotWeakPoint += OnRobotWeakPoint;
             GameEvents.PowerUpCollected += OnPowerUpCollected;
             GameEvents.ShieldBlocked += OnShieldBlocked;
+            GameEvents.IslandHealed += OnIslandHealed;
+            GameEvents.UpgradePicked += OnUpgradePicked;
         }
 
         void DetachGameEvents()
@@ -180,6 +182,8 @@ namespace IslandRocketRumble
             GameEvents.RobotWeakPoint -= OnRobotWeakPoint;
             GameEvents.PowerUpCollected -= OnPowerUpCollected;
             GameEvents.ShieldBlocked -= OnShieldBlocked;
+            GameEvents.IslandHealed -= OnIslandHealed;
+            GameEvents.UpgradePicked -= OnUpgradePicked;
         }
 
         void BindMenus(MatchContext ctx)
@@ -537,6 +541,16 @@ namespace IslandRocketRumble
         void OnShieldBlocked(PlayerId owner, Vector3 point)
         {
             Play(GameSfx.ShieldBlock, 0.85f, Pan(owner) * 1.4f, 0.02f);
+        }
+
+        void OnIslandHealed(PlayerId owner, int amount, int hp, int maxHp, bool announced)
+        {
+            if (announced) Play(GameSfx.Repair, 0.75f, Pan(owner), 0.01f);
+        }
+
+        void OnUpgradePicked(PlayerId p, UpgradeType type)
+        {
+            Play(GameSfx.ReadyChime, 0.8f, Pan(p), 0.01f, minInterval: 0.1f);
         }
 
         // ---------------------------------------------------------------- handlers: craft menu

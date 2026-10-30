@@ -41,6 +41,10 @@ namespace IslandRocketRumble
         /// <summary>(island owner, impact point) A shield absorbed a rocket.</summary>
         public static event Action<PlayerId, UnityEngine.Vector3> ShieldBlocked;
 
+        /// <summary>(island owner, amount healed, hp, max hp, shown to the players) HP or max HP went up.</summary>
+        public static event Action<PlayerId, int, int, int, bool> IslandHealed;
+        public static event Action<PlayerId, UpgradeType> UpgradePicked;
+
         // Flow requests: UI raises these, GameManager answers by changing phase.
         public static event Action RequestHowToPlay;
         public static event Action RequestStartMatch;
@@ -72,6 +76,9 @@ namespace IslandRocketRumble
         public static void RaisePowerUpCollected(PlayerId p, PowerUpType type) => PowerUpCollected?.Invoke(p, type);
         public static void RaiseShieldBlocked(PlayerId owner, UnityEngine.Vector3 point) => ShieldBlocked?.Invoke(owner, point);
 
+        public static void RaiseIslandHealed(PlayerId owner, int amount, int hp, int maxHp, bool announced) => IslandHealed?.Invoke(owner, amount, hp, maxHp, announced);
+        public static void RaiseUpgradePicked(PlayerId p, UpgradeType type) => UpgradePicked?.Invoke(p, type);
+
         public static void Reset()
         {
             PhaseChanged = null; TierChanged = null; ClockTick = null; PartCollected = null;
@@ -80,6 +87,7 @@ namespace IslandRocketRumble
             RequestHowToPlay = null; RequestStartMatch = null; RequestRematch = null; RequestTitle = null;
             RocketPieceBuilt = null; RocketReady = null;
             RobotTransformed = null; RobotWeakPoint = null; PowerUpCollected = null; ShieldBlocked = null;
+            IslandHealed = null; UpgradePicked = null;
         }
     }
 }

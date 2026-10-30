@@ -10,7 +10,7 @@ namespace IslandRocketRumble
         [Header("Match")]
         public float matchDuration = 300f;
         public float tierInterval = 45f;
-        public int islandMaxHp = 600;
+        public int islandMaxHp = 1000;
         public float countdownSeconds = 3f;
 
         [Header("Player")]
@@ -41,6 +41,19 @@ namespace IslandRocketRumble
         [Header("Rockets")]
         public float rocketFlightTime = 1.6f;
         public float rocketArcHeight = 7f;
+        [Tooltip("Seconds before the player can launch again, by rocket tier (T1..T5).")]
+        public float[] rocketCooldowns = { 2f, 3f, 4f, 6f, 8f };
+
+        [Header("Island repair")]
+        public int repairCost = 3;
+        public int repairAmount = 100;
+        public float repairCooldown = 12f;
+        public int heartHeal = 60;
+
+        [Header("Upgrades")]
+        [Tooltip("Parts for the 1st, 2nd, ... upgrade. Its length is the maximum per match.")]
+        public int[] upgradeCosts = { 3, 5, 7, 9 };
+        public int islandArmorHp = 150;
 
         [Header("Robot")]
         public RageLevel[] rageLevels =
@@ -60,12 +73,18 @@ namespace IslandRocketRumble
         public int weakPointDropMultiplier = 2;
         public RobotDrop[] robotDrops =
         {
-            new RobotDrop { rocketTier = PartTier.Scrap, count = 3, rareChance = 0f },
-            new RobotDrop { rocketTier = PartTier.Copper, count = 3, rareChance = 0.05f },
-            new RobotDrop { rocketTier = PartTier.Silver, count = 4, rareChance = 0.15f },
-            new RobotDrop { rocketTier = PartTier.Gold, count = 4, rareChance = 0.30f },
-            new RobotDrop { rocketTier = PartTier.Crystal, count = 5, rareChance = 0.50f },
+            new RobotDrop { rocketTier = PartTier.Scrap, count = 2, rareChance = 0f },
+            new RobotDrop { rocketTier = PartTier.Copper, count = 2, rareChance = 0.05f },
+            new RobotDrop { rocketTier = PartTier.Silver, count = 3, rareChance = 0.15f },
+            new RobotDrop { rocketTier = PartTier.Gold, count = 3, rareChance = 0.30f },
+            new RobotDrop { rocketTier = PartTier.Crystal, count = 4, rareChance = 0.50f },
         };
+
+        public float CooldownFor(PartTier tier)
+        {
+            int i = (int)tier - 1;
+            return rocketCooldowns != null && i >= 0 && i < rocketCooldowns.Length ? rocketCooldowns[i] : 0f;
+        }
 
         public PartTier TierAt(float elapsed)
         {

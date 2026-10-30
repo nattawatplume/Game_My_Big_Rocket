@@ -119,6 +119,17 @@ namespace IslandRocketRumble
             return b;
         });
 
+        /// <summary>Island repaired: warm wrench clicks into a soft rising chord.</summary>
+        public static AudioClip Repair => SfxSynth.Get("repair", () =>
+        {
+            var b = SfxSynth.Buffer(0.7f);
+            for (int i = 0; i < 3; i++)
+                SfxSynth.DecaySine(b, i * 0.07f, 900f + 200f * i, 0.25f, 0.03f);
+            SfxSynth.Bell(b, 0.22f, M(72), 0.35f, 0.35f);
+            SfxSynth.Bell(b, 0.3f, M(76), 0.35f, 0.3f);
+            return b;
+        });
+
         /// <summary>Workshop piece snaps into place: quick ratchet clicks rising into a two-note metal "clink-clink".</summary>
         public static AudioClip BuildClink => SfxSynth.Get("build_clink", () =>
         {

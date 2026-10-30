@@ -37,7 +37,7 @@ namespace IslandRocketRumble
             transform.Rotate(0f, 140f * Time.deltaTime, 0f, Space.World);
 
             Transform player = ctx.Player(owner);
-            if (player != null && GameplayUtil.DistanceXZ(player.position, rest) <= CollectRadius)
+            if (player != null && GameplayUtil.DistanceXZ(player.position, rest) <= CollectRadius * ctx.Upgrades(owner).PickupRadiusMultiplier)
             {
                 var effects = player.GetComponent<PlayerPowerUps>();
                 if (effects == null) effects = player.gameObject.AddComponent<PlayerPowerUps>();

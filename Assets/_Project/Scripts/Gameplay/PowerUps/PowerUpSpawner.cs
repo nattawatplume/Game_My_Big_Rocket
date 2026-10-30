@@ -8,8 +8,8 @@ namespace IslandRocketRumble
     /// </summary>
     public class PowerUpSpawner : MonoBehaviour
     {
-        [Tooltip("Prefabs indexed by PowerUpType: Shield, Speed, Magnet.")]
-        public GameObject[] prefabs = new GameObject[3];
+        [Tooltip("Prefabs indexed by PowerUpType: Shield, Speed, Magnet, Heart.")]
+        public GameObject[] prefabs = new GameObject[4];
 
         PartSpawner parts;
         PowerUpPickup current;
@@ -44,7 +44,7 @@ namespace IslandRocketRumble
             if (ctx == null || !ctx.IsPlaying || ctx.config == null || current != null) return;
 
             timer += Time.deltaTime;
-            if (timer >= ctx.config.powerUpInterval)
+            if (timer >= ctx.config.powerUpInterval * ctx.Upgrades(parts.owner).PowerUpIntervalMultiplier)
             {
                 timer = Random.Range(-3f, 3f);
                 SpawnNow();
@@ -54,7 +54,7 @@ namespace IslandRocketRumble
         public void SpawnNow()
         {
             if (current != null || parts == null || !parts.TryFindFreeSpot(out Vector3 spot)) return;
-            var type = (PowerUpType)Random.Range(0, 3);
+            var type = (PowerUpType)Random.Range(0, 4);
             var prefab = prefabs != null && (int)type < prefabs.Length ? prefabs[(int)type] : null;
             if (prefab == null) return;
 

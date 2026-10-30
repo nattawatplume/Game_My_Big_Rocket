@@ -49,6 +49,9 @@ namespace IslandRocketRumble
                     if (MatchContext.Instance.Island(player.id) is IslandHealth own) island = own;
                     if (island != null) island.GiveShield();
                     break;
+                case PowerUpType.Heart:
+                    if (MatchContext.Instance.Island(player.id) is IslandHealth healed) healed.Repair(cfg.heartHeal);
+                    break;
                 case PowerUpType.Speed:
                     speedLeft = cfg.speedBoostDuration;
                     player.SpeedMultiplier = cfg.speedBoostMultiplier;
@@ -57,7 +60,8 @@ namespace IslandRocketRumble
                     magnetLeft = cfg.magnetDuration;
                     break;
             }
-            string name = type == PowerUpType.Shield ? "SHIELD!" : type == PowerUpType.Speed ? "SPEED UP!" : "MAGNET!";
+            string name = type == PowerUpType.Shield ? "SHIELD!" : type == PowerUpType.Speed ? "SPEED UP!"
+                : type == PowerUpType.Magnet ? "MAGNET!" : "REPAIR!";
             RobotFloatingText.Spawn(name, transform.position + Vector3.up * 2.6f, Palette.HelmetOrange, 0.07f, 1f, 0.8f);
             RobotFx.Burst("PowerUpGet", transform.position + Vector3.up, RobotFx.DotMaterial, 30,
                 Palette.HelmetYellow, Palette.Cream, 2f, 4f, 0.1f, 0.25f, 0.4f, 0.8f, 0.3f);

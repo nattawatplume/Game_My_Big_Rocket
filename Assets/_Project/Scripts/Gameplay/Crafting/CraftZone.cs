@@ -4,7 +4,8 @@ namespace IslandRocketRumble
 {
     /// <summary>
     /// The craft ring on a player island. Standing inside opens that player's CraftMenuState; while open the
-    /// movement keys drive the menu (Left/Right = slot, Up/Down = target) and Confirm crafts + launches.
+    /// movement keys drive the menu (Left/Right = slot, Up/Down = target) and Confirm crafts + launches, repairs the
+    /// island or buys an upgrade (then Left/Right + Confirm pick one of the cards).
     /// Confirming the ✕ slot closes the menu, which stays closed until the player leaves and re-enters the ring.
     /// </summary>
     public class CraftZone : MonoBehaviour
@@ -40,11 +41,17 @@ namespace IslandRocketRumble
         /// <summary>True when the player closed the menu with ✕ and has not left the ring yet.</summary>
         public bool Suppressed => suppressed;
 
+        void Awake()
+        {
+            gameObject.AddComponent<UpgradeEffects>();
+        }
+
         void Update()
         {
             var ctx = MatchContext.Instance;
             if (ctx == null) return;
             var menu = ctx.CraftMenu(owner);
+            if (ctx.IsPlaying) menu.TickCooldowns(Time.deltaTime);
 
             if (!ctx.IsPlaying)
             {
@@ -72,6 +79,14 @@ namespace IslandRocketRumble
 
             if (IsStunned(pt)) return;
 
+            if (menu.IsPicking)
+            {
+                if (PlayerInput2P.LeftPressed(owner)) menu.MoveCard(-1);
+                if (PlayerInput2P.RightPressed(owner)) menu.MoveCard(1);
+                if (PlayerInput2P.ConfirmPressed(owner)) PickCard(ctx, menu);
+                return;
+            }
+
             if (PlayerInput2P.LeftPressed(owner)) menu.Move(-1);
             if (PlayerInput2P.RightPressed(owner)) menu.Move(1);
             if (PlayerInput2P.UpPressed(owner) || PlayerInput2P.DownPressed(owner)) menu.ToggleTarget();
@@ -94,6 +109,16 @@ namespace IslandRocketRumble
                 suppressed = true;
                 return;
             }
+            if (menu.Selected == CraftMenuState.RepairSlot)
+            {
+                TryRepair(ctx, menu);
+                return;
+            }
+            if (menu.Selected == CraftMenuState.UpgradeSlot)
+            {
+                TryBuyUpgrade(ctx, menu);
+                return;
+            }
 
             RocketRecipe recipe = null;
             if (ctx.recipes != null && menu.Selected >= 0 && menu.Selected < ctx.recipes.Length)
@@ -105,11 +130,17 @@ namespace IslandRocketRumble
             }
 
             var inventory = ctx.Inventory(owner);
-            if (!inventory.TrySpend(recipe))
+            if (menu.RocketCooldown > 0f || !inventory.TrySpend(recipe))
             {
                 menu.NotifyDenied();
                 return;
             }
+
+            var upgrades = ctx.Upgrades(owner);
+            if (ctx.config != null)
+                menu.StartRocketCooldown(ctx.config.CooldownFor(recipe.tier) * upgrades.CooldownMultiplier);
+            if (recipe.costs.Length > 0 && Random.value < upgrades.RecycleChance)
+                inventory.Add(recipe.costs[Random.Range(0, recipe.costs.Length)].Key);
 
             menu.NotifyCrafted(recipe);
 
@@ -127,6 +158,49 @@ namespace IslandRocketRumble
             Transform opp = ctx.Player(owner.Opponent());
             Vector3 fallback = opp != null ? opp.position : Center + new Vector3(owner == PlayerId.P1 ? 14f : -14f, 0f, 0f);
             RocketLauncher.Launch(owner, recipe, kind, target, LaunchPad, fallback);
+        }
+
+        void TryRepair(MatchContext ctx, CraftMenuState menu)
+        {
+            var cfg = ctx.config;
+            var island = ctx.Island(owner) as IslandHealth;
+            bool canRepair = cfg != null && island != null && menu.RepairCooldown <= 0f
+                && ctx.Phase != GamePhase.SuddenDeath && island.Hp < island.MaxHp;
+            if (!canRepair || !ctx.Inventory(owner).TrySpendAny(cfg.repairCost))
+            {
+                menu.NotifyDenied();
+                return;
+            }
+            island.Repair(Mathf.RoundToInt(cfg.repairAmount * ctx.Upgrades(owner).RepairMultiplier));
+            menu.StartRepairCooldown(cfg.repairCooldown);
+        }
+
+        void TryBuyUpgrade(MatchContext ctx, CraftMenuState menu)
+        {
+            var cfg = ctx.config;
+            var owned = ctx.Upgrades(owner);
+            if (cfg == null || owned.Purchased >= cfg.upgradeCosts.Length
+                || !ctx.Inventory(owner).TrySpendAny(cfg.upgradeCosts[owned.Purchased]))
+            {
+                menu.NotifyDenied();
+                return;
+            }
+            menu.BeginPicking(UpgradeCatalog.Deal(owned));
+        }
+
+        void PickCard(MatchContext ctx, CraftMenuState menu)
+        {
+            UpgradeType type = menu.Cards[menu.CardIndex];
+            ctx.Upgrades(owner).Add(type);
+            if (type == UpgradeType.IslandArmor && ctx.Island(owner) is IslandHealth island && ctx.config != null)
+                island.AddMaxHp(ctx.config.islandArmorHp);
+            menu.EndPicking();
+            GameEvents.RaiseUpgradePicked(owner, type);
+
+            Transform pt = player != null ? player.transform : ctx.Player(owner);
+            if (pt == null) return;
+            RobotFloatingText.Spawn("UPGRADE!", pt.position + Vector3.up * 3f, Palette.HelmetYellow, 0.09f, 1.1f, 0.8f);
+            RobotFx.Burst("UpgradeBurst", pt.position + Vector3.up, RobotFx.DotMaterial, 40, Palette.HelmetYellow, Palette.Cream, 2f, 5f, 0.12f, 0.3f, 0.5f, 1f, 0.3f);
         }
 
         static bool IsAlive(IRocketTarget t)

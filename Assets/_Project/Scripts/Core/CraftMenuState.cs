@@ -4,17 +4,29 @@ namespace IslandRocketRumble
 {
     /// <summary>
     /// Shared state of one player's craft menu. Gameplay (CraftZone) mutates it, UI renders it.
-    /// Slots 0..4 = rockets T1..T5, slot 5 = close (✕).
+    /// Slots 0..4 = rockets T1..T5, then repair, upgrade and close (✕).
     /// </summary>
     public class CraftMenuState
     {
-        public const int CloseSlot = 5;
-        public const int SlotCount = 6;
+        public const int RocketSlots = 5;
+        public const int RepairSlot = 5;
+        public const int UpgradeSlot = 6;
+        public const int CloseSlot = 7;
+        public const int SlotCount = 8;
 
         public PlayerId Owner { get; }
         public bool IsOpen { get; private set; }
         public int Selected { get; private set; }
         public TargetKind Target { get; private set; } = TargetKind.Opponent;
+
+        /// <summary>Upgrade cards on offer; null when the player is not choosing one.</summary>
+        public UpgradeType[] Cards { get; private set; }
+        public int CardIndex { get; private set; }
+        public bool IsPicking => Cards != null;
+
+        public float RocketCooldown { get; private set; }
+        public float RocketCooldownTotal { get; private set; }
+        public float RepairCooldown { get; private set; }
 
         /// <summary>Raised whenever anything above changes.</summary>
         public event Action Changed;
@@ -53,6 +65,44 @@ namespace IslandRocketRumble
             Changed?.Invoke();
         }
 
+        public void BeginPicking(UpgradeType[] cards)
+        {
+            Cards = cards;
+            CardIndex = 1;
+            Changed?.Invoke();
+        }
+
+        public void MoveCard(int delta)
+        {
+            if (Cards == null) return;
+            CardIndex = (CardIndex + delta + Cards.Length) % Cards.Length;
+            Changed?.Invoke();
+        }
+
+        public void EndPicking()
+        {
+            Cards = null;
+            Changed?.Invoke();
+        }
+
+        public void StartRocketCooldown(float seconds)
+        {
+            RocketCooldown = RocketCooldownTotal = seconds;
+            Changed?.Invoke();
+        }
+
+        public void StartRepairCooldown(float seconds)
+        {
+            RepairCooldown = seconds;
+            Changed?.Invoke();
+        }
+
+        public void TickCooldowns(float dt)
+        {
+            RocketCooldown = RocketCooldown > dt ? RocketCooldown - dt : 0f;
+            RepairCooldown = RepairCooldown > dt ? RepairCooldown - dt : 0f;
+        }
+
         public void NotifyCrafted(RocketRecipe recipe) => Crafted?.Invoke(recipe);
         public void NotifyDenied() => Denied?.Invoke();
 
@@ -61,6 +111,8 @@ namespace IslandRocketRumble
             IsOpen = false;
             Selected = 0;
             Target = TargetKind.Opponent;
+            Cards = null;
+            RocketCooldown = RocketCooldownTotal = RepairCooldown = 0f;
             Changed?.Invoke();
         }
     }

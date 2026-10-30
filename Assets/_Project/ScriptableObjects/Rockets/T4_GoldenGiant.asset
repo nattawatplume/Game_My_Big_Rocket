@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tier: 4
   displayName: Golden Giant
-  damage: 190
+  damage: 180
   costs:
   - type: 0
     tier: 4

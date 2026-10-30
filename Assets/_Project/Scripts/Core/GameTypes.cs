@@ -12,7 +12,7 @@ namespace IslandRocketRumble
 
     public enum TargetKind { Opponent, Robot }
 
-    public enum PowerUpType { Shield, Speed, Magnet }
+    public enum PowerUpType { Shield, Speed, Magnet, Heart }
 
     public enum GamePhase { Title, HowToPlay, Countdown, Playing, SuddenDeath, Result }
 

@@ -31,7 +31,7 @@ namespace IslandRocketRumble
         bool hasPhase;
 
         // ---- match data kept by the UI (latest HP per island, result)
-        public readonly int[] Hp = { 600, 600 };
+        public readonly int[] Hp = { 1000, 1000 };
         public bool HasResult { get; private set; }
         public PlayerId LastWinner { get; private set; }
         public MatchEndReason LastReason { get; private set; }
@@ -56,7 +56,7 @@ namespace IslandRocketRumble
             get
             {
                 var cfg = Config;
-                return cfg != null ? Mathf.Max(1, cfg.islandMaxHp) : 600;
+                return cfg != null ? Mathf.Max(1, cfg.islandMaxHp) : 1000;
             }
         }
 
@@ -120,9 +120,11 @@ namespace IslandRocketRumble
         {
             GameEvents.PhaseChanged -= OnPhaseChanged;
             GameEvents.IslandDamaged -= OnIslandDamaged;
+            GameEvents.IslandHealed -= OnIslandHealed;
             GameEvents.MatchEnded -= OnMatchEnded;
             GameEvents.PhaseChanged += OnPhaseChanged;
             GameEvents.IslandDamaged += OnIslandDamaged;
+            GameEvents.IslandHealed += OnIslandHealed;
             GameEvents.MatchEnded += OnMatchEnded;
         }
 
@@ -161,6 +163,7 @@ namespace IslandRocketRumble
         {
             GameEvents.PhaseChanged -= OnPhaseChanged;
             GameEvents.IslandDamaged -= OnIslandDamaged;
+            GameEvents.IslandHealed -= OnIslandHealed;
             GameEvents.MatchEnded -= OnMatchEnded;
         }
 
@@ -271,6 +274,11 @@ namespace IslandRocketRumble
         void OnIslandDamaged(PlayerId owner, int damage, int hpLeft, Vector3 point)
         {
             Hp[(int)owner] = Mathf.Max(0, hpLeft);
+        }
+
+        void OnIslandHealed(PlayerId owner, int amount, int hp, int maxHp, bool announced)
+        {
+            Hp[(int)owner] = hp;
         }
 
         void OnMatchEnded(PlayerId winner, MatchEndReason reason)

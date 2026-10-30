@@ -100,7 +100,7 @@ namespace IslandRocketRumble
         void ResetHpOnly()
         {
             var cfg = GameplayUtil.Config;
-            MaxHp = cfg != null ? cfg.islandMaxHp : 600;
+            MaxHp = cfg != null ? cfg.islandMaxHp : 1000;
             Hp = MaxHp;
         }
 
@@ -144,6 +144,7 @@ namespace IslandRocketRumble
             }
 
             int dmg = hit.recipe != null ? Mathf.Max(0, hit.recipe.damage) : 0;
+            if (ctx != null) dmg = Mathf.RoundToInt(dmg * ctx.Upgrades(hit.shooter).DamageMultiplier);
             float impact = hit.recipe != null ? hit.recipe.impactScale : 1f;
             Vector3 point = new Vector3(hit.point.x, Center.y, hit.point.z);
 
@@ -165,6 +166,37 @@ namespace IslandRocketRumble
             }
 
             GameEvents.RaiseIslandDamaged(owner, dmg, Hp, point);
+        }
+
+        // ---------------- Repair ----------------
+
+        /// <summary>Restores HP up to the maximum (never during sudden death). Returns the HP actually restored.</summary>
+        public int Repair(int amount, bool announce = true)
+        {
+            var ctx = MatchContext.Instance;
+            if (ctx != null && ctx.Phase == GamePhase.SuddenDeath) return 0;
+            if (Hp <= 0 || Hp >= MaxHp || amount <= 0) return 0;
+
+            int healed = Mathf.Min(amount, MaxHp - Hp);
+            Hp += healed;
+            GameEvents.RaiseIslandHealed(owner, healed, Hp, MaxHp, announce);
+            if (announce) ShowHeal(healed);
+            return healed;
+        }
+
+        /// <summary>Raises the maximum and heals by the same amount.</summary>
+        public void AddMaxHp(int extra)
+        {
+            MaxHp += extra;
+            Hp += extra;
+            GameEvents.RaiseIslandHealed(owner, extra, Hp, MaxHp, true);
+            ShowHeal(extra);
+        }
+
+        void ShowHeal(int amount)
+        {
+            RobotFloatingText.Spawn("+" + amount + " HP", Center + Vector3.up * 2f, Palette.Leaf, 0.1f, 1f, 0.9f);
+            RobotFx.Burst("RepairSparkle", Center + Vector3.up * 0.5f, RobotFx.DotMaterial, 40, Palette.Leaf, Palette.Cream, 1.5f, 4f, 0.12f, 0.3f, 0.5f, 1f, -0.1f);
         }
 
         // ---------------- Shield ----------------

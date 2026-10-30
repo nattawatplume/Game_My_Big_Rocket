@@ -373,6 +373,7 @@ namespace IslandRocketRumble
                 }
             }
             if (!found || drop.count <= 0) return;
+            drop.count += ctx.Upgrades(hit.shooter).RobotDropBonus;
             if (critical) drop.count *= Mathf.Max(1, cfg.weakPointDropMultiplier);
 
             IPartSpawner spawner = ctx.PartSpawner(hit.shooter);

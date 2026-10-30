@@ -100,9 +100,9 @@ namespace IslandRocketRumble.EditorTools
                 C(PartType.Gear, PartTier.Copper, 1), C(PartType.Nut, PartTier.Copper, 1), C(PartType.Fuel, PartTier.Copper, 1));
             Recipe("T3_SilverSpear", PartTier.Silver, "Silver Spear", 110, 1.0f,
                 C(PartType.Gear, PartTier.Silver, 2), C(PartType.Fuel, PartTier.Silver, 1), C(PartType.Chip, PartTier.Silver, 1));
-            Recipe("T4_GoldenGiant", PartTier.Gold, "Golden Giant", 190, 1.4f,
+            Recipe("T4_GoldenGiant", PartTier.Gold, "Golden Giant", 180, 1.4f,
                 C(PartType.Gear, PartTier.Gold, 2), C(PartType.Nut, PartTier.Gold, 1), C(PartType.Fuel, PartTier.Gold, 1), C(PartType.Chip, PartTier.Gold, 1));
-            Recipe("T5_MegaOverkill", PartTier.Crystal, "Mega Overkill", 350, 2.2f,
+            Recipe("T5_MegaOverkill", PartTier.Crystal, "Mega Overkill", 300, 2.2f,
                 C(PartType.Gear, PartTier.Crystal, 2), C(PartType.Fuel, PartTier.Crystal, 1), C(PartType.Chip, PartTier.Crystal, 1), C(PartType.Gem, PartTier.Crystal, 1));
         }
 

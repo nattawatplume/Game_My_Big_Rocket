@@ -59,6 +59,23 @@ namespace IslandRocketRumble.EditorTools
             go = MeshNode("Icon", root.transform, magnet, mRed, height);
             MeshNode("Tips", go.transform, tips, mSilver, Vector3.zero);
             SavePrefab(root, "PowerUps/Magnet");
+
+            // Heart: extruded outline
+            var heart = new Vector2[20];
+            for (int i = 0; i < heart.Length; i++)
+            {
+                float a = i / (float)heart.Length * Mathf.PI * 2f;
+                float s = Mathf.Sin(a);
+                float x = 16f * s * s * s;
+                float y = 13f * Mathf.Cos(a) - 5f * Mathf.Cos(2f * a) - 2f * Mathf.Cos(3f * a) - Mathf.Cos(4f * a);
+                heart[i] = new Vector2(x, y) * 0.024f;
+            }
+            mb = MB();
+            mb.ExtrudeXY(heart, 0.14f);
+            var heartMesh = SaveMesh("PowerUp_Heart", mb);
+            root = new GameObject("Heart");
+            MeshNode("Icon", root.transform, heartMesh, mRed, height);
+            SavePrefab(root, "PowerUps/Heart");
         }
     }
 }

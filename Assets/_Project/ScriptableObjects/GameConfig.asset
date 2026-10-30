@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   matchDuration: 300
   tierInterval: 45
-  islandMaxHp: 600
+  islandMaxHp: 1000
   countdownSeconds: 3
   moveSpeed: 4.5
   stunDuration: 2.5
@@ -50,17 +50,17 @@ MonoBehaviour:
   gemHitRadius: 0.9
   robotDrops:
   - rocketTier: 1
-    count: 3
+    count: 2
     rareChance: 0
   - rocketTier: 2
-    count: 3
+    count: 2
     rareChance: 0.05
   - rocketTier: 3
-    count: 4
+    count: 3
     rareChance: 0.15
   - rocketTier: 4
-    count: 4
+    count: 3
     rareChance: 0.3
   - rocketTier: 5
-    count: 5
+    count: 4
     rareChance: 0.5

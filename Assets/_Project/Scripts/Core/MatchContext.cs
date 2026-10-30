@@ -27,6 +27,11 @@ namespace IslandRocketRumble
             { PlayerId.P1, new CraftMenuState(PlayerId.P1) },
             { PlayerId.P2, new CraftMenuState(PlayerId.P2) },
         };
+        readonly Dictionary<PlayerId, PlayerUpgrades> upgrades = new Dictionary<PlayerId, PlayerUpgrades>
+        {
+            { PlayerId.P1, new PlayerUpgrades() },
+            { PlayerId.P2, new PlayerUpgrades() },
+        };
         readonly Dictionary<PlayerId, IPartSpawner> partSpawners = new Dictionary<PlayerId, IPartSpawner>();
 
         public IRocketTarget Robot { get; private set; }
@@ -59,6 +64,7 @@ namespace IslandRocketRumble
         public Transform Player(PlayerId id) => players.TryGetValue(id, out var p) ? p : null;
         public Inventory Inventory(PlayerId id) => inventories[id];
         public CraftMenuState CraftMenu(PlayerId id) => craftMenus[id];
+        public PlayerUpgrades Upgrades(PlayerId id) => upgrades[id];
         public IPartSpawner PartSpawner(PlayerId island) => partSpawners.TryGetValue(island, out var s) ? s : null;
 
         public IRocketTarget Target(PlayerId shooter, TargetKind kind)
@@ -69,6 +75,7 @@ namespace IslandRocketRumble
             Elapsed = 0f;
             foreach (var inv in inventories.Values) inv.Clear();
             foreach (var menu in craftMenus.Values) menu.Reset();
+            foreach (var u in upgrades.Values) u.Reset();
         }
     }
 }

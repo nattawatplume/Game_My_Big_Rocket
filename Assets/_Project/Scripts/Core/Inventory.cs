@@ -34,6 +34,39 @@ namespace IslandRocketRumble
             return true;
         }
 
+        public int Total
+        {
+            get
+            {
+                int n = 0;
+                foreach (var kv in counts) n += kv.Value;
+                return n;
+            }
+        }
+
+        /// <summary>Spends parts of any kind: lowest tier first, then the most plentiful, so good parts last longest.</summary>
+        public bool TrySpendAny(int amount)
+        {
+            if (Total < amount) return false;
+            for (int i = 0; i < amount; i++)
+            {
+                PartKey best = default;
+                int most = 0;
+                foreach (var kv in counts)
+                {
+                    if (kv.Value <= 0) continue;
+                    if (most == 0 || kv.Key.tier < best.tier || (kv.Key.tier == best.tier && kv.Value > most))
+                    {
+                        most = kv.Value;
+                        best = kv.Key;
+                    }
+                }
+                counts[best] = most - 1;
+            }
+            Changed?.Invoke();
+            return true;
+        }
+
         /// <summary>Turns every part below <paramref name="tier"/> into parts of that tier, same type: ratio old = 1 new, rounded up.</summary>
         public void ConvertBelow(PartTier tier, int ratio)
         {
