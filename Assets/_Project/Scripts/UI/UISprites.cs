@@ -79,6 +79,13 @@ namespace IslandRocketRumble
             return k * k * k - a * a * b * b * b < 0f;
         });
 
+        public static Sprite Gear => GetIcon("gear", (x, y) =>
+        {
+            float r = Mathf.Sqrt(x * x + y * y);
+            float tooth = Mathf.Cos(Mathf.Atan2(y, x) * 8f) > 0.2f ? 0.94f : 0.72f;
+            return r < tooth && r > 0.3f;
+        });
+
         public static Sprite TriangleDown => GetIcon("triDown", (x, y) => InPoly(x, y, triDownPoly));
 
         static readonly Vector2[] triDownPoly = { new Vector2(-0.95f, 0.95f), new Vector2(0.95f, 0.95f), new Vector2(0f, -0.95f) };

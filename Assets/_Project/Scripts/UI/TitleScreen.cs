@@ -22,7 +22,6 @@ namespace IslandRocketRumble
         readonly List<Drifter> drifters = new List<Drifter>();
 
         RectTransform logo;
-        RectTransform tagline;
         UIPillButton[] buttons;
         UIMenuNav nav;
         RectTransform p1Label, p2Label;
@@ -65,11 +64,6 @@ namespace IslandRocketRumble
             BuildWord(logo, "ISLAND", Palette.HelmetYellow, 170, new Vector2(0f, 95f));
             BuildWord(logo, "ROCKET RUMBLE", Palette.IslandSide, 128, new Vector2(0f, -70f));
 
-            var tag = UIFactory.Txt(rect, "Tagline", "ยิงจรวดข้ามเกาะ!  ·  2 PLAYERS  ·  1 KEYBOARD", 34, Palette.Ink,
-                TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(0f, 40f), new Vector2(1200f, 50f), true);
-            UIFactory.AddShadow(tag, UIFactory.WithAlpha(Color.white, 0.6f), new Vector2(0f, -2f));
-            tagline = tag.rectTransform;
-
             // Buttons.
             buttons = new[]
             {
@@ -79,13 +73,9 @@ namespace IslandRocketRumble
             };
             nav = new UIMenuNav(buttons.Length);
 
-            var hint = UIFactory.Txt(rect, "NavHint", "W/S หรือ ↑/↓ เลือก  ·  SPACE / ENTER ตกลง", 26, UIFactory.WithAlpha(Palette.Ink, 0.75f),
-                TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(0f, -402f), new Vector2(900f, 40f));
-            hint.name = "NavHint";
-
             // Corner key labels.
             p1Label = CornerLabel("P1 : W A S D + SPACE", Palette.PipBlue, UIFactory.BottomLeft, new Vector2(40f + 270f, 40f + 42f));
-            p2Label = CornerLabel("P2 : ลูกศร + ENTER", Palette.MomoPink, UIFactory.BottomRight, new Vector2(-(40f + 270f), 40f + 42f));
+            p2Label = CornerLabel("P2 : ลูกศร + ENTER", Palette.MomoPink, UIFactory.BottomRight, new Vector2(-(130f + 270f), 40f + 42f));
         }
 
         void AddCloud(Vector2 pos, float size)
@@ -154,7 +144,6 @@ namespace IslandRocketRumble
             RefreshSelection();
             for (int i = 0; i < letters.Count; i++)
                 UITween.PopIn(letters[i], 0.45f, 0.05f + i * 0.04f);
-            UITween.PopIn(tagline, 0.4f, 0.5f);
             UITween.PopIn(buttons[0].Root, 0.4f, 0.6f);
             UITween.PopIn(buttons[1].Root, 0.4f, 0.65f);
             UITween.PopIn(buttons[2].Root, 0.4f, 0.7f);

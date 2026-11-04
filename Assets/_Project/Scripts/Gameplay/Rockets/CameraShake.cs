@@ -20,6 +20,7 @@ namespace IslandRocketRumble
 
         public static void Shake(float intensity, float duration)
         {
+            if (!GameSettings.ScreenShake) return;
             var cam = Camera.main;
             if (cam == null) return;
             var shake = cam.GetComponent<CameraShake>();

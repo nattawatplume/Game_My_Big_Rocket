@@ -130,6 +130,18 @@ namespace IslandRocketRumble
             return b;
         });
 
+        /// <summary>Fatality sting: a deep falling gong under a crunchy low hit.</summary>
+        public static AudioClip Fatality => SfxSynth.Get("fatality", () =>
+        {
+            var b = SfxSynth.Buffer(1.8f);
+            SfxSynth.Tone(b, 0f, 1.6f, 110f, 55f, SynthWave.Sine, 0.9f, Adsr.Pluck(1.2f));
+            SfxSynth.Tone(b, 0f, 1.2f, 165f, 82f, SynthWave.Triangle, 0.5f, Adsr.Pluck(0.9f));
+            SfxSynth.Tone(b, 0f, 0.5f, 220f, 70f, SynthWave.Square, 0.25f, Adsr.Pluck(0.35f), duty: 0.3f);
+            SfxSynth.Noise(b, 0f, 0.4f, 0.5f, Adsr.Pluck(0.25f), 2500f, 300f, 600f);
+            SfxSynth.Bell(b, 0.05f, M(45), 0.5f, 1.4f);
+            return b;
+        });
+
         /// <summary>Workshop piece snaps into place: quick ratchet clicks rising into a two-note metal "clink-clink".</summary>
         public static AudioClip BuildClink => SfxSynth.Get("build_clink", () =>
         {

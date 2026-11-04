@@ -14,7 +14,7 @@ namespace IslandRocketRumble
         RectTransform winnerRt;
         UText winnerText;
         UText winnerThai;
-        UText line1, line2, rule;
+        UText line1, line2;
         UIPillButton[] buttons;
         UIMenuNav nav;
         UIConfetti confetti;
@@ -41,8 +41,6 @@ namespace IslandRocketRumble
                 new Vector2(960f, 48f), true);
             line2 = UIFactory.Txt(card, "Line2", "", 36, Palette.Ink, TextAnchor.MiddleCenter, UIFactory.Center, new Vector2(0f, -40f),
                 new Vector2(960f, 48f), true);
-            rule = UIFactory.Txt(card, "Rule", "", 28, UIFactory.WithAlpha(Palette.Ink, 0.7f), TextAnchor.MiddleCenter, UIFactory.Center,
-                new Vector2(0f, -90f), new Vector2(960f, 40f));
 
             buttons = new[]
             {
@@ -86,7 +84,6 @@ namespace IslandRocketRumble
                 winnerThai.text = "";
                 line1.text = "P1 HP " + hp1;
                 line2.text = "P2 HP " + hp2;
-                rule.text = "";
             }
             else
             {
@@ -103,21 +100,18 @@ namespace IslandRocketRumble
                         titleText.color = Palette.Danger;
                         line1.text = "เกาะของ " + UIText.PlayerThai(w.Opponent()) + " แตกกระจาย!";
                         line2.text = UIText.PlayerTag(w) + " HP " + root.Hp[(int)w] + " เหลืออยู่";
-                        rule.text = "HP เกาะ = 0 → K.O.";
                         break;
                     case MatchEndReason.TimeUp:
                         titleText.text = "TIME UP!";
                         titleText.color = Palette.HelmetOrange;
                         line1.text = HpLine(PlayerId.P1, hp1, w == PlayerId.P1);
                         line2.text = HpLine(PlayerId.P2, hp2, w == PlayerId.P2);
-                        rule.text = "HP น้อยกว่า = แพ้";
                         break;
                     default:
                         titleText.text = "SUDDEN DEATH!";
                         titleText.color = Palette.Danger;
                         line1.text = UIText.PlayerThai(w) + " ยิงโดนก่อน!";
                         line2.text = "P1 HP " + hp1 + "  ·  P2 HP " + hp2;
-                        rule.text = "HP เท่ากัน → ใครยิงโดนก่อนชนะ";
                         break;
                 }
             }

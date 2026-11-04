@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
@@ -28,6 +29,8 @@ namespace IslandRocketRumble
         readonly CraftMenuView[] menus = new CraftMenuView[2];
 
         GamePhase phase = GamePhase.Title;
+        SettingsScreen settings;
+        float timeScaleBeforeSettings = 1f;
         bool hasPhase;
 
         // ---- match data kept by the UI (latest HP per island, result)
@@ -111,6 +114,8 @@ namespace IslandRocketRumble
             title = CreateScreen<TitleScreen>("Title");
             howTo = CreateScreen<HowToPlayScreen>("HowToPlay");
             customize = CreateScreen<CustomizeScreen>("Customize");
+            settings = CreateScreen<SettingsScreen>("Settings");
+            BuildSettingsButton();
 
             Subscribe();
         }
@@ -134,6 +139,9 @@ namespace IslandRocketRumble
 
         void Update()
         {
+            var kb = Keyboard.current;
+            if (kb != null && kb.escapeKey.wasPressedThisFrame) ToggleSettings();
+
             // Safety net: if someone calls GameEvents.Reset() our listeners are gone. Re-attach once a second
             // and follow MatchContext.Phase if it changed without us hearing a PhaseChanged event.
             resubTimer += Time.unscaledDeltaTime;
@@ -187,6 +195,52 @@ namespace IslandRocketRumble
 
             go.AddComponent<GraphicRaycaster>();
             canvasRect = (RectTransform)go.transform;
+        }
+
+        // ------------------------------------------------------------------ settings
+
+        public bool SettingsOpen => settings != null && settings.IsShown;
+
+        public void OpenSettings()
+        {
+            if (SettingsOpen) return;
+            timeScaleBeforeSettings = Time.timeScale > 0f ? Time.timeScale : 1f;
+            Time.timeScale = 0f;
+            GameSettings.Paused = true;
+            PlayerInput2P.Block();
+            settings.Show();
+        }
+
+        public void CloseSettings()
+        {
+            if (!SettingsOpen) return;
+            settings.Hide();
+            Time.timeScale = timeScaleBeforeSettings;
+            GameSettings.Paused = false;
+            PlayerInput2P.Release();
+        }
+
+        public void ToggleSettings()
+        {
+            if (SettingsOpen) CloseSettings(); else OpenSettings();
+        }
+
+        /// <summary>Gear in the bottom-right corner, on every screen.</summary>
+        void BuildSettingsButton()
+        {
+            var img = UIFactory.Img(canvasRect, "SettingsButton", UISprites.Circle, Palette.Cream, UIFactory.BottomRight,
+                new Vector2(-60f, 60f), new Vector2(84f, 84f));
+            UIFactory.AddOutline(img, Palette.Ink, 4f);
+            img.raycastTarget = true;
+            UIFactory.Icon(img.transform, "Gear", UISprites.Gear, Palette.Ink, UIFactory.Center, Vector2.zero, 58f, 0f);
+            var button = img.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.navigation = new Navigation { mode = Navigation.Mode.None };
+            button.onClick.AddListener(() =>
+            {
+                if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+                ToggleSettings();
+            });
         }
 
         void EnsureEventSystem()

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace IslandRocketRumble
 {
     /// <summary>
-    /// Match phase machine: Title → HowToPlay → Countdown → Playing → (SuddenDeath) → Result.
+    /// Match phase machine: Title → HowToPlay → Countdown → Playing → (SuddenDeath) → (Finale on K.O.) → Result.
     /// Answers GameEvents.Request* from the UI, advances the match clock, detects K.O. / time up / sudden death,
     /// and resets islands, players, parts and rockets when a match (re)starts.
     /// </summary>
@@ -18,10 +18,8 @@ namespace IslandRocketRumble
         public Material particleMaterial;
         [Tooltip("Phase entered when the scene starts. Use Countdown to skip the title while testing.")]
         public GamePhase startPhase = GamePhase.Title;
-        [Tooltip("Brief slow motion when an island is knocked out.")]
-        public bool slowMoOnKnockOut = true;
-        public float slowMoDuration = 0.6f;
-        public float slowMoTimeScale = 0.3f;
+        [Tooltip("Play the fatality finisher before the result screen when an island is knocked out.")]
+        public bool fatalityOnKnockOut = true;
 
         [Header("Optional explicit references (found automatically when empty)")]
         public IslandHealth[] islands;
@@ -34,7 +32,8 @@ namespace IslandRocketRumble
         public bool HasResult { get; private set; }
 
         PartTier lastTier;
-        Coroutine slowMo;
+        FatalitySequence fatality;
+        Coroutine finale;
 
         MatchContext Ctx => context != null ? context : MatchContext.Instance;
         public GamePhase Phase => Ctx != null ? Ctx.Phase : GamePhase.Title;
@@ -43,12 +42,12 @@ namespace IslandRocketRumble
         {
             Instance = this;
             if (particleMaterial != null) FxFactory.ParticleMaterial = particleMaterial;
+            fatality = gameObject.AddComponent<FatalitySequence>();
         }
 
         void OnDestroy()
         {
             if (Instance == this) Instance = null;
-            Time.timeScale = 1f;
         }
 
         void OnEnable()
@@ -105,6 +104,7 @@ namespace IslandRocketRumble
 
         public void StartCountdown()
         {
+            GameSettings.ApplyToConfig(Ctx != null ? Ctx.config : null);
             ResetMatchState();
             var cfg = Ctx != null ? Ctx.config : null;
             CountdownRemaining = cfg != null ? cfg.countdownSeconds : 3f;
@@ -113,6 +113,7 @@ namespace IslandRocketRumble
 
         public void GoToTitle()
         {
+            GameSettings.ApplyToConfig(Ctx != null ? Ctx.config : null);
             ResetMatchState();
             SetPhase(GamePhase.Title);
         }
@@ -222,26 +223,31 @@ namespace IslandRocketRumble
 
         void EndMatch(PlayerId winner, MatchEndReason reason)
         {
+            if (reason == MatchEndReason.KnockOut && fatalityOnKnockOut && fatality != null)
+            {
+                if (finale != null) return;
+                SetPhase(GamePhase.Finale);
+                finale = StartCoroutine(FinaleRoutine(winner));
+                return;
+            }
+            FinishMatch(winner, reason);
+        }
+
+        IEnumerator FinaleRoutine(PlayerId winner)
+        {
+            yield return fatality.Run(winner);
+            finale = null;
+            FinishMatch(winner, MatchEndReason.KnockOut);
+        }
+
+        void FinishMatch(PlayerId winner, MatchEndReason reason)
+        {
             LastWinner = winner;
             LastReason = reason;
             HasResult = true;
             if (Ctx != null) Ctx.Phase = GamePhase.Result;
             GameEvents.RaiseMatchEnded(winner, reason);
             SetPhase(GamePhase.Result);
-
-            if (reason == MatchEndReason.KnockOut && slowMoOnKnockOut)
-            {
-                if (slowMo != null) StopCoroutine(slowMo);
-                slowMo = StartCoroutine(SlowMoRoutine());
-            }
-        }
-
-        IEnumerator SlowMoRoutine()
-        {
-            Time.timeScale = Mathf.Clamp(slowMoTimeScale, 0.05f, 1f);
-            yield return new WaitForSecondsRealtime(slowMoDuration);
-            Time.timeScale = 1f;
-            slowMo = null;
         }
 
         // ---------------- Helpers ----------------
@@ -272,8 +278,8 @@ namespace IslandRocketRumble
         /// <summary>Clears everything back to a fresh match (no phase change).</summary>
         public void ResetMatchState()
         {
-            if (slowMo != null) { StopCoroutine(slowMo); slowMo = null; }
-            Time.timeScale = 1f;
+            if (finale != null) { StopCoroutine(finale); finale = null; }
+            if (fatality != null) fatality.Abort();
             HasResult = false;
             hasPendingEnd = false;
 

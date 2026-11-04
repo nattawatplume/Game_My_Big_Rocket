@@ -44,6 +44,8 @@ namespace IslandRocketRumble
         void Awake()
         {
             Instance = this;
+            // Work on a copy so settings (match length, island HP) never change the asset on disk.
+            if (config != null) config = Instantiate(config);
         }
 
         void OnDestroy()

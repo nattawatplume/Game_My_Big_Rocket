@@ -104,6 +104,7 @@ namespace IslandRocketRumble
 
             AttachGameEvents();
             EnsureListener();
+            GameSettings.ApplyAudio();
             StartCoroutine(Generate());
         }
 
@@ -449,6 +450,10 @@ namespace IslandRocketRumble
             {
                 Play(GameSfx.Whistle, 0.8f, 0f, 0.01f, minInterval: 0f);
                 wait = 0.95f;
+            }
+            else if (reason == MatchEndReason.KnockOut)
+            {
+                wait = 0.2f; // the fatality already had its explosion
             }
             else
             {

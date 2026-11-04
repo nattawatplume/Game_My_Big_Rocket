@@ -5,7 +5,7 @@ namespace IslandRocketRumble
 {
     /// <summary>
     /// Editor / development-build shortcuts for play-testing.
-    /// F1: give both players enough parts for every rocket · F2: skip ahead one tier · F3: last 5 seconds · F4: power-up on both islands · F5: Gold rocket hit on the robot · F6: all power-ups on both players · F7: every upgrade card on both players.
+    /// F1: give both players enough parts for every rocket · F2: skip ahead one tier · F3: last 5 seconds · F4: power-up on both islands · F5: Gold rocket hit on the robot · F6: all power-ups on both players · F7: every upgrade card on both players · F8: knock out P2 (fatality).
     /// </summary>
     public class DebugCheats : MonoBehaviour
     {
@@ -75,6 +75,10 @@ namespace IslandRocketRumble
                         GameEvents.RaiseUpgradePicked(id, def.type);
                     }
                 }
+
+            if (kb.f8Key.wasPressedThisFrame && ctx.Island(PlayerId.P2) is IslandHealth target)
+                for (int i = 0; i < 20 && target.Hp > 0; i++)
+                    target.TakeRocketHit(new RocketHit { shooter = PlayerId.P1, recipe = ctx.recipes[4], point = target.transform.position });
 
             if (kb.f5Key.wasPressedThisFrame && ctx.Robot != null)
                 ctx.Robot.TakeRocketHit(new RocketHit { shooter = PlayerId.P1, recipe = ctx.recipes[3] });

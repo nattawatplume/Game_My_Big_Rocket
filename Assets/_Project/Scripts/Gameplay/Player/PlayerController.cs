@@ -31,6 +31,7 @@ namespace IslandRocketRumble
         float moveBlend;
         Vector3 spawnPos;
         Quaternion spawnRot;
+        Vector3 spawnScale = Vector3.one;
         Vector3 visualBaseScale = Vector3.one;
         Vector3 visualBasePos;
 
@@ -48,6 +49,7 @@ namespace IslandRocketRumble
         {
             spawnPos = spawnPoint != null ? spawnPoint.position : transform.position;
             spawnRot = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
+            spawnScale = transform.localScale;
             if (visual == null) visual = transform.Find("Visual");
             if (visual != null)
             {
@@ -83,6 +85,7 @@ namespace IslandRocketRumble
             Vector3 p = spawnPoint != null ? spawnPoint.position : spawnPos;
             Quaternion r = spawnPoint != null ? spawnPoint.rotation : spawnRot;
             transform.SetPositionAndRotation(p, r);
+            transform.localScale = spawnScale;
             if (visual != null)
             {
                 visual.localScale = visualBaseScale;
