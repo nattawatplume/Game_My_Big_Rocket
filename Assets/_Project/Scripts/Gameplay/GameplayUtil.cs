@@ -120,7 +120,11 @@ namespace IslandRocketRumble
             var tm = go.AddComponent<TextMesh>();
             if (cachedFont == null)
             {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                cachedFont = UIFonts.Main; // the built-in font has no Thai on the web
+#else
                 cachedFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+#endif
             }
             if (cachedFont != null)
             {

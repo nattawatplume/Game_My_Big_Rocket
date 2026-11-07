@@ -76,7 +76,9 @@ namespace IslandRocketRumble
 
         static void ApplyScreen()
         {
-#if !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Screen.fullScreen = fullscreen;
+#elif !UNITY_EDITOR
             Screen.fullScreenMode = fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
 #endif
         }

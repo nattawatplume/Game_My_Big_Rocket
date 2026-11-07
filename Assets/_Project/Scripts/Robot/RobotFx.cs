@@ -390,8 +390,12 @@ namespace IslandRocketRumble
                 if (font == null && !fontTried)
                 {
                     fontTried = true;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    font = UIFonts.Main;
+#else
                     try { font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); }
                     catch { font = null; }
+#endif
                 }
                 return font;
             }

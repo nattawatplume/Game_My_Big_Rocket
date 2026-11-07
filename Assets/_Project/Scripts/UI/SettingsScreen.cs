@@ -33,6 +33,11 @@ namespace IslandRocketRumble
 
         bool InMatch => root.Phase != GamePhase.Title;
 
+        /// <summary>A browser tab cannot be closed by the game, so the web build has no quit button.</summary>
+        static bool CanQuit => Application.platform != RuntimePlatform.WebGLPlayer;
+
+        bool Available(int button) => button == 0 || (button == 1 && InMatch) || (button == 2 && CanQuit);
+
         protected override void Build()
         {
             var dim = UIFactory.StretchImg(rect, "Dim", null, UIFactory.WithAlpha(Palette.Ink, 0.55f));
@@ -63,6 +68,12 @@ namespace IslandRocketRumble
                 buttons[i] = new UIPillButton(card, names[i], fills[i], texts[i], UIFactory.Center, new Vector2((i - 1) * 290f, -375f), new Vector2(260f, 80f));
                 buttons[i].Fill.raycastTarget = true;
                 Clickable(buttons[i].Fill.gameObject, () => { selected = ButtonRow; buttonIndex = index; Activate(index); });
+            }
+            if (!CanQuit)
+            {
+                buttons[2].Root.gameObject.SetActive(false);
+                buttons[0].Root.anchoredPosition = new Vector2(-145f, -375f);
+                buttons[1].Root.anchoredPosition = new Vector2(145f, -375f);
             }
 
             UIFactory.Txt(card, "Hint", "W/S เลือก · A/D ปรับ · SPACE/ENTER ตกลง · ESC ปิด", 22, UIFactory.WithAlpha(Palette.Ink, 0.7f),
@@ -188,7 +199,7 @@ namespace IslandRocketRumble
         void MoveButton(int delta)
         {
             do buttonIndex = (buttonIndex + delta + buttons.Length) % buttons.Length;
-            while (buttonIndex == 1 && !InMatch);
+            while (!Available(buttonIndex));
             Blip(GameSfx.UiMove);
             Refresh();
         }
@@ -225,6 +236,7 @@ namespace IslandRocketRumble
                     GameEvents.RaiseRequestTitle();
                     break;
                 case 2:
+                    if (!CanQuit) return;
 #if UNITY_EDITOR
                     UnityEditor.EditorApplication.isPlaying = false;
 #else

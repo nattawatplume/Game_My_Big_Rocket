@@ -3,10 +3,10 @@ using UnityEngine;
 namespace IslandRocketRumble
 {
     /// <summary>
-    /// Font used by the whole runtime UI (legacy uGUI Text).
-    /// 1) Resources/UI/Fonts/Main (drop a Thai-capable .ttf there to override)
+    /// Font used by the whole runtime UI (legacy uGUI Text) and world TextMeshes.
+    /// 1) Web builds: the bundled Resources/UI/Fonts/Kanit-Medium (browsers have no OS fonts)
     /// 2) OS dynamic font: Leelawadee UI / Leelawadee / Tahoma (Thai on Windows) + symbol fallbacks
-    /// 3) Unity built-in LegacyRuntime.ttf
+    /// 3) The bundled Kanit, then Unity built-in LegacyRuntime.ttf
     /// </summary>
     public static class UIFonts
     {
@@ -23,10 +23,11 @@ namespace IslandRocketRumble
 
         static Font Load()
         {
+            Font bundled = Resources.Load<Font>("UI/Fonts/Kanit-Medium");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (bundled != null) return bundled;
+#endif
             Font f = null;
-            try { f = Resources.Load<Font>("UI/Fonts/Main"); }
-            catch { f = null; }
-            if (f != null) return f;
 
             try
             {
@@ -36,6 +37,7 @@ namespace IslandRocketRumble
             }
             catch { f = null; }
             if (f != null) return f;
+            if (bundled != null) return bundled;
 
             return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
